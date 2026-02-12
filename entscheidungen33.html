@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Russisch Übung: Syntax & Kongruenz (Sofort-Feedback)</title>
+    <!-- Polyfill für Touch-Support (für Konsistenz mit anderen Aufgaben) -->
+    <script src="https://cdn.jsdelivr.net/npm/drag-drop-touch@1.3.1/DragDropTouch.js"></script>
+    <style>
+        :root {
+            --primary: #3f51b5;
+            --primary-light: #e8eaf6;
+            --bg-color: #f4f7f6;
+            --text-color: #333;
+            
+            /* Feedback Farben - Kräftig und klar */
+            --correct-bg: #4caf50; /* Grün */
+            --correct-border: #2e7d32;
+            --wrong-bg: #f44336; /* Rot */
+            --wrong-border: #c62828;
+            
+            --btn-default: #fff;
+            --btn-hover: #f5f5f5;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px;
+            line-height: 1.5;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+
+        h2 {
+            text-align: center;
+            color: var(--primary);
+            margin-bottom: 10px;
+        }
+
+        .instruction {
+            background-color: var(--primary-light);
+            padding: 15px;
+            border-left: 5px solid var(--primary);
+            margin-bottom: 30px;
+            border-radius: 4px;
+        }
+
+        /* --- Fragen-Layout --- */
+        .question-card {
+            background-color: #fff;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            transition: box-shadow 0.2s;
+            position: relative;
+        }
+        
+        /* Visueller Indikator am Rand */
+        .question-card.status-correct { border-left: 5px solid var(--correct-bg); }
+        .question-card.status-wrong { border-left: 5px solid var(--wrong-bg); }
+
+        .sentence {
+            font-size: 1.25em;
+            margin-bottom: 15px;
+            font-weight: 500;
+        }
+
+        .gap {
+            display: inline-block;
+            min-width: 60px;
+            border-bottom: 2px solid var(--primary);
+            color: var(--primary);
+            text-align: center;
+            padding: 0 5px;
+            transition: color 0.3s;
+        }
+        
+        .status-correct .gap { color: var(--correct-border); border-bottom-color: var(--correct-border); }
+        .status-wrong .gap { color: var(--wrong-border); border-bottom-color: var(--wrong-border); }
+
+        /* --- Antwort-Buttons --- */
+        .options-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .option-btn {
+            flex: 1;
+            min-width: 80px;
+            padding: 12px 15px;
+            background-color: var(--btn-default);
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1.1em;
+            font-weight: bold;
+            text-align: center;
+            transition: all 0.2s;
+            user-select: none;
+        }
+
+        .option-btn:hover:not(.disabled) {
+            border-color: #999;
+            background-color: var(--btn-hover);
+            transform: translateY(-2px);
+        }
+
+        /* --- Zustände der Buttons --- */
+        
+        /* Wenn angeklickt und RICHTIG */
+        .option-btn.btn-correct {
+            background-color: var(--correct-bg) !important;
+            border-color: var(--correct-border) !important;
+            color: white !important;
+        }
+
+        /* Wenn angeklickt und FALSCH */
+        .option-btn.btn-wrong {
+            background-color: var(--wrong-bg) !important;
+            border-color: var(--wrong-border) !important;
+            color: white !important;
+            opacity: 0.8;
+        }
+
+        /* Wenn deaktiviert (nach Antwort) */
+        .option-btn.disabled {
+            cursor: default;
+            pointer-events: none;
+        }
+        
+        /* Nicht gewählte Buttons ausgrauen */
+        .option-btn.disabled:not(.btn-correct):not(.btn-wrong) {
+            opacity: 0.5;
+            background-color: #f0f0f0;
+            border-color: #eee;
+            color: #aaa;
+        }
+
+        /* Erklärungstext */
+        .explanation {
+            margin-top: 15px;
+            padding: 10px;
+            background-color: #fafafa;
+            border-radius: 4px;
+            font-size: 0.95em;
+            display: none; /* Versteckt bis Antwort */
+            border-left: 3px solid #9e9e9e;
+        }
+        
+        .status-correct .explanation { border-color: var(--correct-bg); background-color: #e8f5e9; }
+        .status-wrong .explanation { border-color: var(--wrong-bg); background-color: #ffebee; }
+
+        /* --- Steuerung --- */
+        .controls {
+            margin-top: 30px;
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            flex-wrap: wrap;
+            border-top: 1px solid #eee;
+            padding-top: 20px;
+        }
+
+        button.ctrl-btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 50px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.1s;
+            min-width: 140px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            color: white;
+        }
+
+        button.ctrl-btn:active { transform: scale(0.96); }
+        .btn-reset { background-color: #78909c; }
+        .btn-solve { background-color: #ff4081; }
+
+        /* Responsive */
+        @media (max-width: 600px) {
+            .container { padding: 15px; margin: 0; }
+            .sentence { font-size: 1.1em; }
+            .option-btn { flex-basis: 40%; } /* 2 pro Zeile auf Handy */
+            .controls { flex-direction: column; }
+            button.ctrl-btn { width: 100%; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Syntax: Sofort-Feedback</h2>
+    
+    <div class="instruction">
+        <strong>Aufgabe:</strong> Klicken Sie auf die richtige Form. <br>
+        Sie sehen <strong>sofort</strong>, ob Ihre Antwort richtig (Grün) oder falsch (Rot) ist.
+    </div>
+
+    <!-- Frage 1 (KORRIGIERT) -->
+    <div class="question-card" id="q1" data-correct="была">
+        <div class="sentence">У брата <span class="gap">...</span> машина.</div>
+        <div class="options-container">
+            <!-- onclick übergibt: (this element, 'antwort-wert', 'richtige-antwort') -->
+            <div class="option-btn" onclick="check(this, 'был', 'была')">был</div>
+            <div class="option-btn" onclick="check(this, 'была', 'была')">была</div>
+            <div class="option-btn" onclick="check(this, 'было', 'была')">было</div>
+            <div class="option-btn" onclick="check(this, 'были', 'была')">были</div>
+        </div>
+        <div class="explanation">
+            <strong>Lösung: была.</strong> Das Subjekt ist <em>машина</em> (Auto, Feminin).
+        </div>
+    </div>
+
+    <!-- Frage 2 -->
+    <div class="question-card" id="q2" data-correct="был">
+        <div class="sentence">У мамы <span class="gap">...</span> телефон.</div>
+        <div class="options-container">
+            <div class="option-btn" onclick="check(this, 'был', 'был')">был</div>
+            <div class="option-btn" onclick="check(this, 'была', 'был')">была</div>
+            <div class="option-btn" onclick="check(this, 'было', 'был')">было</div>
+            <div class="option-btn" onclick="check(this, 'были', 'был')">были</div>
+        </div>
+        <div class="explanation">
+            <strong>Lösung: был.</strong> Das Subjekt ist <em>телефон</em> (Telefon, Maskulin).
+        </div>
+    </div>
+
+    <!-- Frage 3 -->
+    <div class="question-card" id="q3" data-correct="был">
+        <div class="sentence">Брат <span class="gap">...</span> в парке.</div>
+        <div class="options-container">
+            <div class="option-btn" onclick="check(this, 'был', 'был')">был</div>
+            <div class="option-btn" onclick="check(this, 'была', 'был')">была</div>
+            <div class="option-btn" onclick="check(this, 'было', 'был')">было</div>
+            <div class="option-btn" onclick="check(this, 'были', 'был')">были</div>
+        </div>
+        <div class="explanation">
+            <strong>Lösung: был.</strong> Subjekt ist <em>Брат</em> (Bruder, Maskulin). Er war am Ort.
+        </div>
+    </div>
+
+    <!-- Frage 4 -->
+    <div class="question-card" id="q4" data-correct="были">
+        <div class="sentence">У нас <span class="gap">...</span> проблемы.</div>
+        <div class="options-container">
+            <div class="option-btn" onclick="check(this, 'был', 'были')">был</div>
+            <div class="option-btn" onclick="check(this, 'была', 'были')">была</div>
+            <div class="option-btn" onclick="check(this, 'было', 'были')">было</div>
+            <div class="option-btn" onclick="check(this, 'были', 'были')">были</div>
+        </div>
+        <div class="explanation">
+            <strong>Lösung: были.</strong> Subjekt ist <em>проблемы</em> (Probleme, Plural).
+        </div>
+    </div>
+
+    <!-- Frage 5 -->
+    <div class="question-card" id="q5" data-correct="было">
+        <div class="sentence">У них <span class="gap">...</span> яблоко.</div>
+        <div class="options-container">
+            <div class="option-btn" onclick="check(this, 'был', 'было')">был</div>
+            <div class="option-btn" onclick="check(this, 'была', 'было')">была</div>
+            <div class="option-btn" onclick="check(this, 'было', 'было')">было</div>
+            <div class="option-btn" onclick="check(this, 'были', 'было')">были</div>
+        </div>
+        <div class="explanation">
+            <strong>Lösung: было.</strong> Subjekt ist <em>яблоко</em> (Apfel, Neutrum).
+        </div>
+    </div>
+
+    <!-- Frage 6 -->
+    <div class="question-card" id="q6" data-correct="была">
+        <div class="sentence">Сестра <span class="gap">...</span> дома.</div>
+        <div class="options-container">
+            <div class="option-btn" onclick="check(this, 'был', 'была')">был</div>
+            <div class="option-btn" onclick="check(this, 'была', 'была')">была</div>
+            <div class="option-btn" onclick="check(this, 'было', 'была')">было</div>
+            <div class="option-btn" onclick="check(this, 'были', 'была')">были</div>
+        </div>
+        <div class="explanation">
+            <strong>Lösung: была.</strong> Subjekt ist <em>Сестра</em> (Schwester, Feminin).
+        </div>
+    </div>
+
+    <!-- Frage 7 -->
+    <div class="question-card" id="q7" data-correct="была">
+        <div class="sentence">У Ивана <span class="gap">...</span> собака.</div>
+        <div class="options-container">
+            <div class="option-btn" onclick="check(this, 'был', 'была')">был</div>
+            <div class="option-btn" onclick="check(this, 'была', 'была')">была</div>
+            <div class="option-btn" onclick="check(this, 'было', 'была')">было</div>
+            <div class="option-btn" onclick="check(this, 'были', 'была')">были</div>
+        </div>
+        <div class="explanation">
+            <strong>Lösung: была.</strong> Subjekt ist <em>собака</em> (Hund, Feminin).
+        </div>
+    </div>
+
+    <!-- Frage 8 -->
+    <div class="question-card" id="q8" data-correct="был">
+        <div class="sentence">У Анны <span class="gap">...</span> дом.</div>
+        <div class="options-container">
+            <div class="option-btn" onclick="check(this, 'был', 'был')">был</div>
+            <div class="option-btn" onclick="check(this, 'была', 'был')">была</div>
+            <div class="option-btn" onclick="check(this, 'было', 'был')">было</div>
+            <div class="option-btn" onclick="check(this, 'были', 'был')">были</div>
+        </div>
+        <div class="explanation">
+            <strong>Lösung: был.</strong> Subjekt ist <em>дом</em> (Haus, Maskulin).
+        </div>
+    </div>
+
+    <!-- Steuerung -->
+    <div class="controls">
+        <button class="ctrl-btn btn-reset" onclick="resetGame()">Alles Zurücksetzen</button>
+        <button class="ctrl-btn btn-solve" onclick="revealAll()">Alle Lösungen anzeigen</button>
+    </div>
+</div>
+
+<script>
+    function check(btnElement, selectedValue, correctValue) {
+        // Find the container (Parent Card)
+        const card = btnElement.closest('.question-card');
+        const gap = card.querySelector('.gap');
+        const explanation = card.querySelector('.explanation');
+        const allButtons = card.querySelectorAll('.option-btn');
+
+        // Check if Correct
+        const isCorrect = (selectedValue === correctValue);
+
+        // Update Gap text immediately
+        gap.textContent = selectedValue;
+        gap.style.fontWeight = 'bold';
+
+        if (isCorrect) {
+            // Style Button Green
+            btnElement.classList.add('btn-correct');
+            card.classList.add('status-correct');
+        } else {
+            // Style Button Red
+            btnElement.classList.add('btn-wrong');
+            card.classList.add('status-wrong');
+            
+            // Highlight the CORRECT one as well (for learning)
+            allButtons.forEach(b => {
+                // Wir prüfen den Text im Button
+                if (b.innerText.trim() === correctValue) {
+                    b.classList.add('btn-correct');
+                }
+            });
+        }
+
+        // Disable all buttons in this card to prevent changing answer
+        allButtons.forEach(b => b.classList.add('disabled'));
+
+        // Show Explanation
+        explanation.style.display = 'block';
+    }
+
+    function resetGame() {
+        const cards = document.querySelectorAll('.question-card');
+        
+        cards.forEach(card => {
+            // Remove status classes
+            card.classList.remove('status-correct', 'status-wrong');
+            
+            // Reset gap
+            const gap = card.querySelector('.gap');
+            gap.textContent = "...";
+            gap.style.fontWeight = "normal";
+
+            // Reset buttons
+            const buttons = card.querySelectorAll('.option-btn');
+            buttons.forEach(btn => {
+                btn.classList.remove('btn-correct', 'btn-wrong', 'disabled');
+            });
+
+            // Hide explanation
+            const explanation = card.querySelector('.explanation');
+            explanation.style.display = 'none';
+        });
+    }
+
+    function revealAll() {
+        // Setzt alles zurück und wählt dann automatisch die richtige Antwort
+        resetGame();
+        
+        const cards = document.querySelectorAll('.question-card');
+        cards.forEach(card => {
+            const correctVal = card.getAttribute('data-correct');
+            // Suche den richtigen Button
+            const buttons = card.querySelectorAll('.option-btn');
+            let correctBtn = null;
+            
+            buttons.forEach(btn => {
+                if (btn.innerText.trim() === correctVal) {
+                    correctBtn = btn;
+                }
+            });
+            
+            if (correctBtn) {
+                // Funktion aufrufen als ob der User geklickt hätte
+                check(correctBtn, correctVal, correctVal);
+            }
+        });
+    }
+</script>
+
+</body>
+</html>
