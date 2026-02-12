@@ -1,0 +1,842 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Russische Grammatik: Das Verb БЫТЬ</title>
+    <!-- Polyfill für Touch Drag & Drop -->
+    <script src="https://cdn.jsdelivr.net/npm/drag-drop-touch@1.3.1/DragDropTouch.js"></script>
+    <style>
+        :root {
+            --primary-color: #3f51b5;
+            --secondary-color: #f5f5f5;
+            --accent-color: #ff4081;
+            --success-color: #4caf50;
+            --error-color: #f44336;
+            --text-color: #333;
+            --border-radius: 8px;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #eef2f5;
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            padding: 40px;
+            border-radius: var(--border-radius);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        h1, h2, h3 {
+            color: var(--primary-color);
+        }
+
+        h1 {
+            text-align: center;
+            border-bottom: 2px solid var(--primary-color);
+            padding-bottom: 10px;
+        }
+
+        .intro-box {
+            background-color: #e8eaf6;
+            padding: 20px;
+            border-left: 5px solid var(--primary-color);
+            border-radius: 4px;
+            margin-bottom: 30px;
+        }
+
+        .grammar-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+            background: white;
+        }
+
+        .grammar-table th, .grammar-table td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+
+        .grammar-table th {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        /* Exercise Styles */
+        .exercise {
+            border: 1px solid #ddd;
+            padding: 20px;
+            margin-bottom: 30px;
+            border-radius: var(--border-radius);
+            background-color: #fff;
+        }
+
+        .exercise-header {
+            font-weight: bold;
+            margin-bottom: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .task-instruction {
+            margin-bottom: 15px;
+            font-style: italic;
+            color: #555;
+        }
+
+        .task-content {
+            margin-bottom: 20px;
+        }
+
+        /* Interaction Elements */
+        select {
+            padding: 8px;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+            font-size: 16px;
+            background: white;
+            margin: 0 5px;
+        }
+
+        input[type="radio"] {
+            margin-right: 5px;
+            transform: scale(1.2);
+        }
+
+        label {
+            margin-right: 15px;
+            cursor: pointer;
+        }
+
+        /* Drag and Drop Styles */
+        .dnd-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            justify-content: center;
+        }
+
+        .draggable-source {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            min-height: 50px;
+            padding: 10px;
+            background: #f0f0f0;
+            border-radius: 4px;
+            justify-content: center;
+            width: 100%;
+            margin-bottom: 15px;
+        }
+
+        .draggable {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 8px 15px;
+            border-radius: 4px;
+            cursor: grab;
+            user-select: none;
+            font-weight: bold;
+        }
+
+        .draggable.used {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .dropzone-container {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            width: 100%;
+        }
+
+        .drop-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            justify-content: center;
+        }
+
+        .dropzone {
+            width: 120px;
+            height: 40px;
+            border: 2px dashed #ccc;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #fafafa;
+            transition: background 0.2s;
+        }
+
+        .dropzone.dragover {
+            background: #e3f2fd;
+            border-color: var(--primary-color);
+        }
+
+        /* Button Group */
+        .button-group {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 15px;
+            border-top: 1px solid #eee;
+            padding-top: 15px;
+        }
+
+        button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: bold;
+            transition: opacity 0.2s;
+        }
+
+        button:hover {
+            opacity: 0.9;
+        }
+
+        .btn-check { background-color: var(--primary-color); color: white; }
+        .btn-reset { background-color: #9e9e9e; color: white; }
+        .btn-solve { background-color: var(--accent-color); color: white; }
+
+        /* Feedback Classes */
+        .correct-bg { background-color: #d4edda !important; border-color: #c3e6cb !important; }
+        .incorrect-bg { background-color: #f8d7da !important; border-color: #f5c6cb !important; }
+        .feedback-msg { margin-left: 10px; font-weight: bold; }
+        .msg-success { color: var(--success-color); }
+        .msg-error { color: var(--error-color); }
+
+        @media (max-width: 600px) {
+            .container { padding: 15px; }
+            .button-group { flex-direction: column; }
+            .button-group button { width: 100%; }
+            .drop-row { flex-direction: column; text-align: center; border-bottom: 1px solid #eee; padding-bottom: 10px;}
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Russische Grammatik: Das Verb БЫТЬ</h1>
+
+    <div class="intro-box">
+        <h3>Einführung: Das Verb „БЫТЬ“ (sein)</h3>
+        <p>Im Russischen wird das Verb „sein“ unterschiedlich verwendet, je nach Zeitform und Kontext.</p>
+        
+        <h4>1. Vergangenheit (Präteritum)</h4>
+        <p>Das Verb passt sich dem Geschlecht des Subjekts an:</p>
+        <table class="grammar-table">
+            <tr>
+                <th>Geschlecht</th>
+                <th>Form</th>
+                <th>Beispiel (Anwesenheit)</th>
+            </tr>
+            <tr>
+                <td>Maskulin (он)</td>
+                <td><strong>был</strong></td>
+                <td>Иван <strong>был</strong> дома. (Ivan war zu Hause.)</td>
+            </tr>
+            <tr>
+                <td>Feminin (она)</td>
+                <td><strong>была</strong></td>
+                <td>Мама <strong>была</strong> в парке. (Mama war im Park.)</td>
+            </tr>
+            <tr>
+                <td>Neutrum (оно)</td>
+                <td><strong>было</strong></td>
+                <td>Лето <strong>было</strong> тёплое. (Der Sommer war warm.)</td>
+            </tr>
+            <tr>
+                <td>Plural (они)</td>
+                <td><strong>были</strong></td>
+                <td>Мы <strong>были</strong> там. (Wir waren dort.)</td>
+            </tr>
+        </table>
+
+        <h4>2. Wichtige Konstruktionen</h4>
+        <ul>
+            <li><strong>Besitz (Haben):</strong> <em>У меня был...</em> (Bei mir war...). Das Verb richtet sich nach dem Objekt (was man hatte).<br>
+                Beispiel: <em>У меня <strong>был</strong> кот.</em> (Ich hatte einen Kater.)</li>
+            <li><strong>Verneinung (Nicht da sein / Nicht haben):</strong> Man verwendet immer den Genitiv + <strong>не было</strong> (Neutrum Singular).<br>
+                Beispiel: <em>Меня <strong>не было</strong> дома.</em> (Ich war nicht zu Hause.)<br>
+                Beispiel: <em>У меня <strong>не было</strong> кота.</em> (Ich hatte keinen Kater.)</li>
+            <li><strong>Zukunft:</strong> <em>буду, будешь, будет, будем, будете, будут</em>.</li>
+        </ul>
+    </div>
+
+    <!-- Aufgabe 1: Drag & Drop Formen -->
+    <div class="exercise" id="ex1">
+        <div class="exercise-header">Aufgabe 1: Formen zuordnen</div>
+        <div class="task-instruction">Ziehen Sie die Vergangenheitsform zum passenden Personalpronomen.</div>
+        <div class="task-content">
+            <div class="draggable-source" id="ex1-source">
+                <div class="draggable" draggable="true" id="drag1-1" data-val="был">был</div>
+                <div class="draggable" draggable="true" id="drag1-2" data-val="была">была</div>
+                <div class="draggable" draggable="true" id="drag1-3" data-val="было">было</div>
+                <div class="draggable" draggable="true" id="drag1-4" data-val="были">были</div>
+            </div>
+            <div class="dropzone-container">
+                <div class="drop-row">
+                    <span>Он (er)</span>
+                    <div class="dropzone" data-correct="был"></div>
+                </div>
+                <div class="drop-row">
+                    <span>Она (sie, Sg.)</span>
+                    <div class="dropzone" data-correct="была"></div>
+                </div>
+                <div class="drop-row">
+                    <span>Оно (es)</span>
+                    <div class="dropzone" data-correct="было"></div>
+                </div>
+                <div class="drop-row">
+                    <span>Они (sie, Pl.)</span>
+                    <div class="dropzone" data-correct="были"></div>
+                </div>
+            </div>
+        </div>
+        <div class="button-group">
+            <button class="btn-check" onclick="checkDnD('ex1')">Überprüfen</button>
+            <button class="btn-reset" onclick="resetDnD('ex1')">Zurücksetzen</button>
+            <button class="btn-solve" onclick="solveDnD('ex1')">Lösung anzeigen</button>
+            <span class="feedback-msg" id="ex1-msg"></span>
+        </div>
+    </div>
+
+    <!-- Aufgabe 2: Radio Buttons (Anwesenheit Vergangenheit) -->
+    <div class="exercise" id="ex2">
+        <div class="exercise-header">Aufgabe 2: Wo waren sie? (Vergangenheit)</div>
+        <div class="task-instruction">Wählen Sie die richtige Form passend zum Geschlecht der Person.</div>
+        <div class="task-content">
+            <div style="margin-bottom: 10px;">
+                <p>1. Анна вчера ______ в кино.</p>
+                <label><input type="radio" name="ex2-1" value="был"> был</label>
+                <label><input type="radio" name="ex2-1" value="была" data-correct="true"> была</label>
+                <label><input type="radio" name="ex2-1" value="были"> были</label>
+            </div>
+            <div style="margin-bottom: 10px;">
+                <p>2. Брат ______ в школе.</p>
+                <label><input type="radio" name="ex2-2" value="был" data-correct="true"> был</label>
+                <label><input type="radio" name="ex2-2" value="была"> была</label>
+                <label><input type="radio" name="ex2-2" value="были"> были</label>
+            </div>
+        </div>
+        <div class="button-group">
+            <button class="btn-check" onclick="checkRadio('ex2', 2)">Überprüfen</button>
+            <button class="btn-reset" onclick="resetRadio('ex2')">Zurücksetzen</button>
+            <button class="btn-solve" onclick="solveRadio('ex2', 2)">Lösung anzeigen</button>
+            <span class="feedback-msg" id="ex2-msg"></span>
+        </div>
+    </div>
+
+    <!-- Aufgabe 3: Dropdown (Zukunft Konjugation) -->
+    <div class="exercise" id="ex3">
+        <div class="exercise-header">Aufgabe 3: Die Zukunft (werden sein)</div>
+        <div class="task-instruction">Wählen Sie die richtige Form von „sein“ im Futur.</div>
+        <div class="task-content">
+            <p>Я 
+                <select id="ex3-1" data-correct="буду">
+                    <option value="">---</option>
+                    <option value="буду">буду</option>
+                    <option value="будешь">будешь</option>
+                    <option value="будет">будет</option>
+                </select> 
+                дома. (Ich werde zu Hause sein.)
+            </p>
+            <p>Мы 
+                <select id="ex3-2" data-correct="будем">
+                    <option value="">---</option>
+                    <option value="будем">будем</option>
+                    <option value="будете">будете</option>
+                    <option value="будут">будут</option>
+                </select> 
+                в парке. (Wir werden im Park sein.)
+            </p>
+        </div>
+        <div class="button-group">
+            <button class="btn-check" onclick="checkSelect('ex3', 2)">Überprüfen</button>
+            <button class="btn-reset" onclick="resetSelect('ex3')">Zurücksetzen</button>
+            <button class="btn-solve" onclick="solveSelect('ex3', 2)">Lösung anzeigen</button>
+            <span class="feedback-msg" id="ex3-msg"></span>
+        </div>
+    </div>
+
+    <!-- Aufgabe 4: Besitz (Positiv) -->
+    <div class="exercise" id="ex4">
+        <div class="exercise-header">Aufgabe 4: Besitz (Haben in der Vergangenheit)</div>
+        <div class="task-instruction">Achten Sie auf das Objekt (das, was man hat). Es bestimmt die Form des Verbs!</div>
+        <div class="task-content">
+            <p>У Ивана (M) ______ машина (F).</p>
+            <label><input type="radio" name="ex4-1" value="был"> был</label>
+            <label><input type="radio" name="ex4-1" value="была" data-correct="true"> была</label>
+            <label><input type="radio" name="ex4-1" value="было"> было</label>
+            
+            <p>У мамы (F) ______ телефон (M).</p>
+            <label><input type="radio" name="ex4-2" value="был" data-correct="true"> был</label>
+            <label><input type="radio" name="ex4-2" value="была"> была</label>
+            <label><input type="radio" name="ex4-2" value="было"> было</label>
+        </div>
+        <div class="button-group">
+            <button class="btn-check" onclick="checkRadio('ex4', 2)">Überprüfen</button>
+            <button class="btn-reset" onclick="resetRadio('ex4')">Zurücksetzen</button>
+            <button class="btn-solve" onclick="solveRadio('ex4', 2)">Lösung anzeigen</button>
+            <span class="feedback-msg" id="ex4-msg"></span>
+        </div>
+    </div>
+
+    <!-- Aufgabe 5: Drag & Drop Satzbau -->
+    <div class="exercise" id="ex5">
+        <div class="exercise-header">Aufgabe 5: Satzbau (Besitz)</div>
+        <div class="task-instruction">Bilden Sie den Satz: „Wir hatten ein Haus.“ (Haus = дом, Maskulin)</div>
+        <div class="task-content">
+            <div class="draggable-source" id="ex5-source">
+                <div class="draggable" draggable="true" id="drag5-1" data-val="У">У</div>
+                <div class="draggable" draggable="true" id="drag5-2" data-val="нас">нас</div>
+                <div class="draggable" draggable="true" id="drag5-3" data-val="был">был</div>
+                <div class="draggable" draggable="true" id="drag5-4" data-val="дом">дом</div>
+            </div>
+            <div class="dropzone-container" style="flex-direction: row; justify-content: center; flex-wrap: wrap;">
+                <div class="dropzone" data-correct="У"></div>
+                <div class="dropzone" data-correct="нас"></div>
+                <div class="dropzone" data-correct="был"></div>
+                <div class="dropzone" data-correct="дом"></div>
+            </div>
+        </div>
+        <div class="button-group">
+            <button class="btn-check" onclick="checkDnD('ex5')">Überprüfen</button>
+            <button class="btn-reset" onclick="resetDnD('ex5')">Zurücksetzen</button>
+            <button class="btn-solve" onclick="solveDnD('ex5')">Lösung anzeigen</button>
+            <span class="feedback-msg" id="ex5-msg"></span>
+        </div>
+    </div>
+
+    <!-- Aufgabe 6: Verneinung (Besitz) -->
+    <div class="exercise" id="ex6">
+        <div class="exercise-header">Aufgabe 6: Verneinung (Etwas nicht haben)</div>
+        <div class="task-instruction">Welche Form verwenden wir, wenn wir sagen „hatte keinen/keine/kein“?</div>
+        <div class="task-content">
+            <p>У меня ______ времени. (Ich hatte keine Zeit.)</p>
+            <select id="ex6-1" data-correct="не было">
+                <option value="">---</option>
+                <option value="не был">не был</option>
+                <option value="не была">не была</option>
+                <option value="не было">не было</option>
+            </select>
+            <p>У них ______ собаки. (Sie hatten keinen Hund.)</p>
+            <select id="ex6-2" data-correct="не было">
+                <option value="">---</option>
+                <option value="не был">не был</option>
+                <option value="не была">не была</option>
+                <option value="не было">не было</option>
+            </select>
+        </div>
+        <div class="button-group">
+            <button class="btn-check" onclick="checkSelect('ex6', 2)">Überprüfen</button>
+            <button class="btn-reset" onclick="resetSelect('ex6')">Zurücksetzen</button>
+            <button class="btn-solve" onclick="solveSelect('ex6', 2)">Lösung anzeigen</button>
+            <span class="feedback-msg" id="ex6-msg"></span>
+        </div>
+    </div>
+
+    <!-- Aufgabe 7: Abwesenheit Person -->
+    <div class="exercise" id="ex7">
+        <div class="exercise-header">Aufgabe 7: Abwesenheit (Jemand war nicht da)</div>
+        <div class="task-instruction">Entscheiden Sie: War die Person da (Nominativ + byl/byla) oder nicht (Genitiv + ne bylo)?</div>
+        <div class="task-content">
+            <p>1. Ивана (Genitiv) ______ дома.</p>
+            <label><input type="radio" name="ex7-1" value="был"> был</label>
+            <label><input type="radio" name="ex7-1" value="не было" data-correct="true"> не было</label>
+            
+            <p>2. Иван (Nominativ) ______ дома.</p>
+            <label><input type="radio" name="ex7-2" value="был" data-correct="true"> был</label>
+            <label><input type="radio" name="ex7-2" value="не было"> не было</label>
+        </div>
+        <div class="button-group">
+            <button class="btn-check" onclick="checkRadio('ex7', 2)">Überprüfen</button>
+            <button class="btn-reset" onclick="resetRadio('ex7')">Zurücksetzen</button>
+            <button class="btn-solve" onclick="solveRadio('ex7', 2)">Lösung anzeigen</button>
+            <span class="feedback-msg" id="ex7-msg"></span>
+        </div>
+    </div>
+
+    <!-- Aufgabe 8: Zukunft Besitz -->
+    <div class="exercise" id="ex8">
+        <div class="exercise-header">Aufgabe 8: Zukunft (Haben werden)</div>
+        <div class="task-instruction">Ergänzen Sie den Satz. Achten Sie auf Einzahl (Singular) oder Mehrzahl (Plural) des Objekts.</div>
+        <div class="task-content">
+            <p>У тебя ______ новый компьютер (Singular).</p>
+            <select id="ex8-1" data-correct="будет">
+                <option value="">---</option>
+                <option value="будет">будет</option>
+                <option value="будут">будут</option>
+            </select>
+            
+            <p>У нас ______ проблемы (Plural).</p>
+            <select id="ex8-2" data-correct="будут">
+                <option value="">---</option>
+                <option value="будет">будет</option>
+                <option value="будут">будут</option>
+            </select>
+        </div>
+        <div class="button-group">
+            <button class="btn-check" onclick="checkSelect('ex8', 2)">Überprüfen</button>
+            <button class="btn-reset" onclick="resetSelect('ex8')">Zurücksetzen</button>
+            <button class="btn-solve" onclick="solveSelect('ex8', 2)">Lösung anzeigen</button>
+            <span class="feedback-msg" id="ex8-msg"></span>
+        </div>
+    </div>
+
+    <!-- Aufgabe 9: Mengenangaben -->
+    <div class="exercise" id="ex9">
+        <div class="exercise-header">Aufgabe 9: Mengenangaben (Wie viel / Viel)</div>
+        <div class="task-instruction">Nach Wörtern wie „сколько“ (wie viel) oder „много“ (viel) steht das Verb im Neutrum Singular.</div>
+        <div class="task-content">
+            <p>Сколько людей ______ на концерте?</p>
+            <label><input type="radio" name="ex9-1" value="были"> были</label>
+            <label><input type="radio" name="ex9-1" value="было" data-correct="true"> было</label>
+            
+            <p>Много студентов ______ в университете.</p>
+            <label><input type="radio" name="ex9-2" value="были"> были</label>
+            <label><input type="radio" name="ex9-2" value="было" data-correct="true"> было</label>
+        </div>
+        <div class="button-group">
+            <button class="btn-check" onclick="checkRadio('ex9', 2)">Überprüfen</button>
+            <button class="btn-reset" onclick="resetRadio('ex9')">Zurücksetzen</button>
+            <button class="btn-solve" onclick="solveRadio('ex9', 2)">Lösung anzeigen</button>
+            <span class="feedback-msg" id="ex9-msg"></span>
+        </div>
+    </div>
+
+    <!-- Aufgabe 10: Zeitformen mischen -->
+    <div class="exercise" id="ex10">
+        <div class="exercise-header">Aufgabe 10: Zeitformen mischen</div>
+        <div class="task-instruction">Wählen Sie die korrekte Form basierend auf den Signalwörtern „вчера“ (gestern) und „завтра“ (morgen).</div>
+        <div class="task-content">
+            <p>Вчера я ______ на работе.</p>
+            <select id="ex10-1" data-correct="был">
+                <option value="">---</option>
+                <option value="буду">буду</option>
+                <option value="был">был</option>
+                <option value="были">были</option>
+            </select>
+            <p>Завтра я ______ дома.</p>
+            <select id="ex10-2" data-correct="буду">
+                <option value="">---</option>
+                <option value="буду">буду</option>
+                <option value="был">был</option>
+                <option value="были">были</option>
+            </select>
+        </div>
+        <div class="button-group">
+            <button class="btn-check" onclick="checkSelect('ex10', 2)">Überprüfen</button>
+            <button class="btn-reset" onclick="resetSelect('ex10')">Zurücksetzen</button>
+            <button class="btn-solve" onclick="solveSelect('ex10', 2)">Lösung anzeigen</button>
+            <span class="feedback-msg" id="ex10-msg"></span>
+        </div>
+    </div>
+    
+     <!-- Aufgabe 11: Plural Anwesenheit -->
+    <div class="exercise" id="ex11">
+        <div class="exercise-header">Aufgabe 11: Plural Anwesenheit</div>
+        <div class="task-instruction">Sie sind mehrere Personen. Welches Verb passt?</div>
+        <div class="task-content">
+            <p>Где вы ______ вчера?</p>
+            <label><input type="radio" name="ex11-1" value="был"> был</label>
+            <label><input type="radio" name="ex11-1" value="была"> была</label>
+            <label><input type="radio" name="ex11-1" value="были" data-correct="true"> были</label>
+
+            <p>Мы ______ в ресторане.</p>
+            <label><input type="radio" name="ex11-2" value="был"> был</label>
+            <label><input type="radio" name="ex11-2" value="была"> была</label>
+            <label><input type="radio" name="ex11-2" value="были" data-correct="true"> были</label>
+        </div>
+        <div class="button-group">
+            <button class="btn-check" onclick="checkRadio('ex11', 2)">Überprüfen</button>
+            <button class="btn-reset" onclick="resetRadio('ex11')">Zurücksetzen</button>
+            <button class="btn-solve" onclick="solveRadio('ex11', 2)">Lösung anzeigen</button>
+            <span class="feedback-msg" id="ex11-msg"></span>
+        </div>
+    </div>
+
+    <!-- Aufgabe 12: Übersetzung Drag & Drop -->
+    <div class="exercise" id="ex12">
+        <div class="exercise-header">Aufgabe 12: Sätze übersetzen</div>
+        <div class="task-instruction">Ordnen Sie den deutschen Sätzen die richtige russische Übersetzung zu.</div>
+        <div class="task-content">
+            <div class="draggable-source" id="ex12-source">
+                <div class="draggable" draggable="true" id="drag12-1" data-val="У меня не было времени">У меня не было времени</div>
+                <div class="draggable" draggable="true" id="drag12-2" data-val="Я был дома">Я был дома</div>
+                <div class="draggable" draggable="true" id="drag12-3" data-val="У меня была собака">У меня была собака</div>
+            </div>
+            <div class="dropzone-container">
+                <div class="drop-row">
+                    <span style="width: 200px;">Ich war zu Hause.</span>
+                    <div class="dropzone" style="width: 250px;" data-correct="Я был дома"></div>
+                </div>
+                <div class="drop-row">
+                    <span style="width: 200px;">Ich hatte einen Hund.</span>
+                    <div class="dropzone" style="width: 250px;" data-correct="У меня была собака"></div>
+                </div>
+                <div class="drop-row">
+                    <span style="width: 200px;">Ich hatte keine Zeit.</span>
+                    <div class="dropzone" style="width: 250px;" data-correct="У меня не было времени"></div>
+                </div>
+            </div>
+        </div>
+        <div class="button-group">
+            <button class="btn-check" onclick="checkDnD('ex12')">Überprüfen</button>
+            <button class="btn-reset" onclick="resetDnD('ex12')">Zurücksetzen</button>
+            <button class="btn-solve" onclick="solveDnD('ex12')">Lösung anzeigen</button>
+            <span class="feedback-msg" id="ex12-msg"></span>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    /**
+     * Logic for Select (Dropdown) Exercises
+     */
+    function checkSelect(exerciseId, count) {
+        let correctCount = 0;
+        for (let i = 1; i <= count; i++) {
+            const select = document.getElementById(`${exerciseId}-${i}`);
+            const correctVal = select.getAttribute('data-correct');
+            
+            select.classList.remove('correct-bg', 'incorrect-bg');
+            
+            if (select.value === correctVal) {
+                select.classList.add('correct-bg');
+                correctCount++;
+            } else {
+                select.classList.add('incorrect-bg');
+            }
+        }
+        showFeedback(exerciseId, correctCount, count);
+    }
+
+    function resetSelect(exerciseId) {
+        const selects = document.querySelectorAll(`#${exerciseId} select`);
+        selects.forEach(s => {
+            s.value = "";
+            s.classList.remove('correct-bg', 'incorrect-bg');
+        });
+        clearFeedback(exerciseId);
+    }
+
+    function solveSelect(exerciseId, count) {
+        for (let i = 1; i <= count; i++) {
+            const select = document.getElementById(`${exerciseId}-${i}`);
+            select.value = select.getAttribute('data-correct');
+            select.classList.remove('correct-bg', 'incorrect-bg');
+        }
+        clearFeedback(exerciseId);
+    }
+
+    /**
+     * Logic for Radio Button Exercises
+     */
+    function checkRadio(exerciseId, count) {
+        let correctCount = 0;
+        for (let i = 1; i <= count; i++) {
+            const radios = document.getElementsByName(`${exerciseId}-${i}`);
+            let answered = false;
+            let isCorrect = false;
+            let parentDiv = radios[0].parentElement.parentElement; // Getting the wrapper to colorize if needed, usually we don't colorize radios directly but maybe the label text?
+            
+            // Removing old styles (simple approach: remove custom classes from labels)
+            radios.forEach(r => r.parentElement.classList.remove('msg-success', 'msg-error'));
+
+            radios.forEach(r => {
+                if (r.checked) {
+                    answered = true;
+                    if (r.getAttribute('data-correct') === 'true') {
+                        isCorrect = true;
+                        r.parentElement.classList.add('msg-success');
+                    } else {
+                        r.parentElement.classList.add('msg-error');
+                    }
+                }
+            });
+
+            if (isCorrect) correctCount++;
+        }
+        showFeedback(exerciseId, correctCount, count);
+    }
+
+    function resetRadio(exerciseId) {
+        const radios = document.querySelectorAll(`#${exerciseId} input[type="radio"]`);
+        radios.forEach(r => {
+            r.checked = false;
+            r.parentElement.classList.remove('msg-success', 'msg-error');
+        });
+        clearFeedback(exerciseId);
+    }
+
+    function solveRadio(exerciseId, count) {
+        resetRadio(exerciseId); // Clear wrong markings first
+        for (let i = 1; i <= count; i++) {
+            const radios = document.getElementsByName(`${exerciseId}-${i}`);
+            radios.forEach(r => {
+                if (r.getAttribute('data-correct') === 'true') {
+                    r.checked = true;
+                    r.parentElement.classList.add('msg-success');
+                }
+            });
+        }
+    }
+
+    /**
+     * Logic for Drag and Drop Exercises
+     */
+    let draggedItem = null;
+
+    document.addEventListener('dragstart', function(e) {
+        if (e.target.classList.contains('draggable')) {
+            draggedItem = e.target;
+            e.dataTransfer.setData('text/plain', e.target.id);
+            setTimeout(() => e.target.style.opacity = '0.5', 0);
+        }
+    });
+
+    document.addEventListener('dragend', function(e) {
+        if (e.target.classList.contains('draggable')) {
+            e.target.style.opacity = '1';
+            draggedItem = null;
+        }
+    });
+
+    document.addEventListener('dragover', function(e) {
+        e.preventDefault(); // Necessary to allow dropping
+        if (e.target.classList.contains('dropzone')) {
+            e.target.classList.add('dragover');
+        }
+    });
+
+    document.addEventListener('dragleave', function(e) {
+        if (e.target.classList.contains('dropzone')) {
+            e.target.classList.remove('dragover');
+        }
+    });
+
+    document.addEventListener('drop', function(e) {
+        e.preventDefault();
+        if (e.target.classList.contains('dropzone')) {
+            e.target.classList.remove('dragover');
+            
+            // Check if dropzone already has a child
+            if (e.target.children.length === 0 && draggedItem) {
+                e.target.appendChild(draggedItem);
+            } else if (e.target.children.length > 0 && draggedItem) {
+                // Swap logic or just return to source
+                const existingItem = e.target.children[0];
+                const sourceContainer = document.getElementById(draggedItem.id.split('-')[0] + '-source'); // Infer source ID ex1-source from drag1-1
+                // Simplification: Return existing item to source, place new one
+                // Ideally we find the original source of the item being bumped
+                // For simplicity in this static file: allow only empty drop or swap manually
+            }
+        } else if (e.target.classList.contains('draggable-source') || e.target.closest('.draggable-source')) {
+            // Return to source
+             const source = e.target.classList.contains('draggable-source') ? e.target : e.target.closest('.draggable-source');
+             if(draggedItem) source.appendChild(draggedItem);
+        }
+    });
+
+    // Touch Support is handled by the included script, standard events apply
+
+    function checkDnD(exerciseId) {
+        const dropzones = document.querySelectorAll(`#${exerciseId} .dropzone`);
+        let correctCount = 0;
+        let total = dropzones.length;
+
+        dropzones.forEach(zone => {
+            const item = zone.firstElementChild;
+            zone.classList.remove('correct-bg', 'incorrect-bg');
+            
+            if (item) {
+                if (item.getAttribute('data-val') === zone.getAttribute('data-correct')) {
+                    zone.classList.add('correct-bg');
+                    correctCount++;
+                } else {
+                    zone.classList.add('incorrect-bg');
+                }
+            } else {
+                zone.classList.add('incorrect-bg');
+            }
+        });
+        showFeedback(exerciseId, correctCount, total);
+    }
+
+    function resetDnD(exerciseId) {
+        const source = document.getElementById(`${exerciseId}-source`);
+        const items = document.querySelectorAll(`#${exerciseId} .draggable`);
+        const dropzones = document.querySelectorAll(`#${exerciseId} .dropzone`);
+        
+        // Move all items back to source
+        // Sorting them back by ID to keep order nice (optional)
+        const itemsArray = Array.from(items).sort((a, b) => a.id.localeCompare(b.id));
+        
+        itemsArray.forEach(item => {
+            source.appendChild(item);
+        });
+
+        dropzones.forEach(zone => {
+            zone.classList.remove('correct-bg', 'incorrect-bg');
+        });
+        clearFeedback(exerciseId);
+    }
+
+    function solveDnD(exerciseId) {
+        resetDnD(exerciseId); // Start clean
+        const dropzones = document.querySelectorAll(`#${exerciseId} .dropzone`);
+        
+        dropzones.forEach(zone => {
+            const correctVal = zone.getAttribute('data-correct');
+            // Find the item with this value
+            // Note: This simple selector assumes unique values per exercise or first match
+            const item = document.querySelector(`#${exerciseId} .draggable[data-val="${correctVal}"]`);
+            if (item && item.parentElement !== zone) {
+                zone.appendChild(item);
+                zone.classList.add('correct-bg');
+            }
+        });
+    }
+
+
+    /**
+     * Helper: Feedback Messages
+     */
+    function showFeedback(id, correct, total) {
+        const msgSpan = document.getElementById(`${id}-msg`);
+        if (correct === total) {
+            msgSpan.textContent = "Perfekt! Alles richtig.";
+            msgSpan.className = "feedback-msg msg-success";
+        } else {
+            msgSpan.textContent = `${correct} von ${total} richtig.`;
+            msgSpan.className = "feedback-msg msg-error";
+        }
+    }
+
+    function clearFeedback(id) {
+        const msgSpan = document.getElementById(`${id}-msg`);
+        msgSpan.textContent = "";
+        msgSpan.className = "feedback-msg";
+    }
+
+</script>
+
+</body>
+</html>
