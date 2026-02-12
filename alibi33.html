@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Russisch Spiel: Das Alibi</title>
+    <!-- Polyfill (für Konsistenz) -->
+    <script src="https://cdn.jsdelivr.net/npm/drag-drop-touch@1.3.1/DragDropTouch.js"></script>
+    <style>
+        :root {
+            --bg-color: #263238; /* Dunkles Blau-Grau */
+            --card-bg: #37474f;
+            --text-color: #eceff1;
+            --accent: #ffca28; /* Warnfarbe Gelb */
+            --highlight: #29b6f6; /* Polizei-Blau */
+            
+            --correct: #66bb6a;
+            --wrong: #ef5350;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px;
+            line-height: 1.5;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: var(--card-bg);
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            border: 1px solid #455a64;
+        }
+
+        h2 {
+            text-align: center;
+            color: var(--accent);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 5px;
+        }
+        
+        .subtitle {
+            text-align: center;
+            color: #b0bec5;
+            margin-bottom: 20px;
+            font-size: 0.9em;
+        }
+
+        /* --- Phase 1: Alibi Wahl --- */
+        .phase-container {
+            display: none; /* Wird per JS gesteuert */
+            animation: fadeIn 0.5s;
+        }
+
+        .phase-container.active {
+            display: block;
+        }
+
+        .alibi-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .selection-card {
+            background: #455a64;
+            padding: 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            text-align: center;
+            border: 2px solid transparent;
+            transition: all 0.2s;
+        }
+
+        .selection-card:hover {
+            background: #546e7a;
+        }
+
+        .selection-card.selected {
+            border-color: var(--accent);
+            background: #263238;
+        }
+
+        .card-icon { font-size: 2.5em; display: block; margin-bottom: 10px; }
+        .card-label { font-weight: bold; font-size: 1.1em; }
+        .card-sub { font-size: 0.8em; color: #b0bec5; }
+
+        .btn-action {
+            display: block;
+            width: 100%;
+            padding: 15px;
+            background-color: var(--highlight);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.2em;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 20px;
+            text-transform: uppercase;
+        }
+        
+        .btn-action:disabled {
+            background-color: #546e7a;
+            cursor: not-allowed;
+            opacity: 0.5;
+        }
+
+        /* --- Phase 2: Verhör --- */
+        .police-box {
+            background: #263238;
+            border-left: 4px solid var(--highlight);
+            padding: 20px;
+            margin-bottom: 20px;
+            position: relative;
+        }
+
+        .police-label {
+            position: absolute;
+            top: -12px;
+            left: 10px;
+            background: var(--highlight);
+            color: #fff;
+            padding: 2px 8px;
+            font-size: 0.7em;
+            font-weight: bold;
+            border-radius: 4px;
+        }
+
+        .question-text {
+            font-size: 1.3em;
+            font-weight: bold;
+        }
+
+        .options-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .answer-btn {
+            background: #455a64;
+            color: white;
+            padding: 15px;
+            border: 2px solid #546e7a;
+            border-radius: 8px;
+            text-align: left;
+            cursor: pointer;
+            font-size: 1.1em;
+            transition: all 0.2s;
+        }
+
+        .answer-btn:hover {
+            background: #546e7a;
+        }
+
+        /* Feedback Status */
+        .answer-btn.correct {
+            background-color: var(--correct);
+            border-color: #2e7d32;
+            color: white;
+        }
+
+        .answer-btn.wrong {
+            background-color: var(--wrong);
+            border-color: #c62828;
+            color: white;
+            opacity: 0.6;
+        }
+
+        /* --- Phase 3: Ergebnis --- */
+        .result-box {
+            text-align: center;
+            padding: 30px;
+        }
+        
+        .status-badge {
+            display: inline-block;
+            padding: 10px 20px;
+            border-radius: 50px;
+            font-size: 1.5em;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+        
+        .status-innocent { background: var(--correct); color: white; }
+        .status-guilty { background: var(--wrong); color: white; }
+
+        /* Animation */
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* Responsive */
+        @media (max-width: 600px) {
+            .alibi-grid { grid-template-columns: 1fr 1fr; }
+            .question-text { font-size: 1.1em; }
+            .answer-btn { font-size: 1em; padding: 12px; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Alibi-Spiel: Das Verhör</h2>
+    <div class="subtitle">Grammatikthema: Vergangenheit (Haben & Sein)</div>
+
+    <!-- PHASE 1: ALIBI WÄHLEN -->
+    <div id="phase-setup" class="phase-container active">
+        <p style="text-align:center; margin-bottom:20px;">
+            Wählen Sie Ihr Alibi für gestern Abend. <br>
+            <strong>Merken Sie sich die Details gut!</strong>
+        </p>
+
+        <!-- Ort -->
+        <h4 style="color:var(--highlight); border-bottom:1px solid #546e7a; padding-bottom:5px;">1. Wo waren Sie? (Ort)</h4>
+        <div class="alibi-grid" id="grid-location">
+            <div class="selection-card" onclick="selectAlibi('loc', 'kino', this)">
+                <span class="card-icon">🎬</span>
+                <span class="card-label">Кино</span>
+                <span class="card-sub">(Kino)</span>
+            </div>
+            <div class="selection-card" onclick="selectAlibi('loc', 'park', this)">
+                <span class="card-icon">🌳</span>
+                <span class="card-label">Парк</span>
+                <span class="card-sub">(Park)</span>
+            </div>
+            <div class="selection-card" onclick="selectAlibi('loc', 'restaurant', this)">
+                <span class="card-icon">🍕</span>
+                <span class="card-label">Ресторан</span>
+                <span class="card-sub">(Restaurant)</span>
+            </div>
+        </div>
+
+        <!-- Begleitung -->
+        <h4 style="color:var(--highlight); border-bottom:1px solid #546e7a; padding-bottom:5px;">2. Wer war dabei? (Person)</h4>
+        <div class="alibi-grid" id="grid-person">
+            <div class="selection-card" onclick="selectAlibi('who', 'bruder', this)">
+                <span class="card-icon">👱‍♂️</span>
+                <span class="card-label">Брат</span>
+                <span class="card-sub">(Bruder)</span>
+            </div>
+            <div class="selection-card" onclick="selectAlibi('who', 'mama', this)">
+                <span class="card-icon">👩</span>
+                <span class="card-label">Мама</span>
+                <span class="card-sub">(Mama)</span>
+            </div>
+            <div class="selection-card" onclick="selectAlibi('who', 'freunde', this)">
+                <span class="card-icon">👫</span>
+                <span class="card-label">Друзья</span>
+                <span class="card-sub">(Freunde)</span>
+            </div>
+        </div>
+
+        <!-- Was fehlte -->
+        <h4 style="color:var(--highlight); border-bottom:1px solid #546e7a; padding-bottom:5px;">3. Was hatten Sie NICHT? (Negation)</h4>
+        <div class="alibi-grid" id="grid-missing">
+            <div class="selection-card" onclick="selectAlibi('miss', 'telefon', this)">
+                <span class="card-icon">📱</span>
+                <span class="card-label">Телефон</span>
+                <span class="card-sub">(Telefon)</span>
+            </div>
+            <div class="selection-card" onclick="selectAlibi('miss', 'geld', this)">
+                <span class="card-icon">💵</span>
+                <span class="card-label">Деньги</span>
+                <span class="card-sub">(Geld)</span>
+            </div>
+        </div>
+
+        <button id="start-btn" class="btn-action" onclick="startInterrogation()" disabled>Verhör starten</button>
+    </div>
+
+    <!-- PHASE 2: VERHÖR -->
+    <div id="phase-game" class="phase-container">
+        <div class="police-box">
+            <div class="police-label">POLIZIST</div>
+            <div class="question-text" id="question-display">...</div>
+        </div>
+
+        <div class="options-list" id="options-display">
+            <!-- Buttons werden hier generiert -->
+        </div>
+        
+        <div id="feedback-msg" style="margin-top:15px; text-align:center; font-weight:bold;"></div>
+    </div>
+
+    <!-- PHASE 3: ERGEBNIS -->
+    <div id="phase-result" class="phase-container">
+        <div class="result-box">
+            <div id="result-badge" class="status-badge"></div>
+            <h3 id="result-title"></h3>
+            <p id="result-text"></p>
+            <button class="btn-action" onclick="location.reload()">Neues Spiel</button>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    // Spielzustand
+    let alibi = {
+        loc: null, // kino, park, restaurant
+        who: null, // bruder, mama, freunde
+        miss: null // telefon, geld
+    };
+    
+    let currentQuestionIndex = 0;
+    let mistakes = 0;
+
+    // Datenbank für Fragen und Antworten
+    // Wir generieren die Antworten dynamisch basierend auf der Wahl
+    const scenarios = {
+        loc: {
+            kino: { text: "в кино", correct: "Я был в кино." }, // Vereinfacht: Maskulin Form für den Spieler, um Komplexität zu reduzieren oder generisch
+            park: { text: "в парке", correct: "Я был в парке." },
+            restaurant: { text: "в ресторане", correct: "Я был в ресторане." }
+        },
+        who: {
+            bruder: { text: "брат", correct: "Там был брат." },
+            mama: { text: "мама", correct: "Там была мама." },
+            freunde: { text: "друзья", correct: "Там были друзья." }
+        },
+        miss: {
+            telefon: { text: "телефона", correct: "У меня не было телефона." }, // Genitiv!
+            geld: { text: "денег", correct: "У меня не было денег." } // Genitiv!
+        }
+    };
+
+    // Alibi Auswahl
+    function selectAlibi(category, value, element) {
+        alibi[category] = value;
+        
+        // Visuelles Feedback
+        const grid = document.getElementById('grid-' + (category === 'loc' ? 'location' : (category === 'who' ? 'person' : 'missing')));
+        const cards = grid.querySelectorAll('.selection-card');
+        cards.forEach(c => c.classList.remove('selected'));
+        element.classList.add('selected');
+
+        // Button aktivieren?
+        if (alibi.loc && alibi.who && alibi.miss) {
+            document.getElementById('start-btn').disabled = false;
+        }
+    }
+
+    function startInterrogation() {
+        document.getElementById('phase-setup').classList.remove('active');
+        document.getElementById('phase-game').classList.add('active');
+        loadQuestion(0);
+    }
+
+    function loadQuestion(index) {
+        const qDisplay = document.getElementById('question-display');
+        const oDisplay = document.getElementById('options-display');
+        const feedback = document.getElementById('feedback-msg');
+        
+        oDisplay.innerHTML = ''; // Leeren
+        feedback.textContent = '';
+        
+        if (index === 0) {
+            // Frage nach ORT
+            qDisplay.textContent = "Где вы были вчера вечером?"; // Wo waren Sie gestern Abend?
+            
+            // Optionen generieren: 
+            // 1. Richtiges Alibi + Richtige Grammatik
+            // 2. Falsches Alibi + Richtige Grammatik
+            // 3. Richtiges Alibi + Falsche Grammatik (z.B. Nominativ statt Präpositiv oder falsches Verb)
+            
+            let options = [];
+            
+            // Die richtige Antwort
+            options.push({ text: scenarios.loc[alibi.loc].correct, valid: true });
+            
+            // Distraktor: Anderer Ort
+            const wrongLoc = alibi.loc === 'kino' ? 'park' : 'kino';
+            options.push({ text: scenarios.loc[wrongLoc].correct, valid: false, reason: "Lüge! Das passt nicht zu Ihrem Alibi." });
+            
+            // Distraktor: Falsche Grammatik (z.B. Nominativ "Ich war Kino")
+            const gramWrong = alibi.loc === 'kino' ? "Я был кино." : (alibi.loc === 'park' ? "Я был парк." : "Я был ресторан.");
+            options.push({ text: gramWrong, valid: false, reason: "Falsche Grammatik (Präpositiv fehlt)." });
+
+            shuffleAndRender(options);
+
+        } else if (index === 1) {
+            // Frage nach BEGLEITUNG
+            qDisplay.textContent = "Кто был там с вами?"; // Wer war dort mit Ihnen?
+            
+            let options = [];
+            
+            // Richtig
+            options.push({ text: scenarios.who[alibi.who].correct, valid: true });
+            
+            // Falsches Alibi
+            const wrongWho = alibi.who === 'bruder' ? 'mama' : 'bruder';
+            options.push({ text: scenarios.who[wrongWho].correct, valid: false, reason: "Lüge! Das passt nicht zu Ihrem Alibi." });
+            
+            // Falsche Grammatik (Kongruenzfehler: Tam byla brat / Tam byl mama)
+            let gramWrong = "";
+            if (alibi.who === 'bruder') gramWrong = "Там была брат."; // Falsches Geschlecht
+            if (alibi.who === 'mama') gramWrong = "Там был мама.";
+            if (alibi.who === 'freunde') gramWrong = "Там был друзья."; // Falscher Numerus
+            
+            options.push({ text: gramWrong, valid: false, reason: "Falsche Grammatik (Verb passt nicht zum Subjekt)." });
+            
+            shuffleAndRender(options);
+
+        } else if (index === 2) {
+            // Frage nach FEHLENDEM OBJEKT
+            // Polizist fragt: "Hatten Sie ...?" (das Objekt, das man NICHT hat)
+            // Wenn ich Telefon als 'miss' gewählt habe, fragt er: "У вас был телефон?"
+            
+            const objName = alibi.miss === 'telefon' ? 'телефон' : 'деньги';
+            qDisplay.textContent = `У вас ${alibi.miss === 'geld' ? 'были' : 'был'} ${objName}?`; 
+            
+            let options = [];
+            
+            // Richtig: Nein, ich hatte kein... (Genitiv)
+            options.push({ text: `Нет, ${scenarios.miss[alibi.miss].correct}`, valid: true });
+            
+            // Falsch Alibi: Ja, ich hatte...
+            const posAnswer = alibi.miss === 'telefon' ? "Да, у меня был телефон." : "Да, у меня были деньги.";
+            options.push({ text: posAnswer, valid: false, reason: "Lüge! Sie sagten, Sie hatten das nicht." });
+            
+            // Falsche Grammatik (Genitiv vergessen bei Verneinung)
+            const gramWrong = alibi.miss === 'telefon' ? "Нет, у меня не было телефон." : "Нет, у меня не было деньги.";
+            options.push({ text: gramWrong, valid: false, reason: "Falsche Grammatik (Genitiv fehlt bei 'не было')." });
+            
+            shuffleAndRender(options);
+
+        } else {
+            // Ende
+            showResult();
+        }
+    }
+
+    function shuffleAndRender(options) {
+        const container = document.getElementById('options-display');
+        // Shuffle
+        options.sort(() => Math.random() - 0.5);
+        
+        options.forEach(opt => {
+            const btn = document.createElement('div');
+            btn.className = 'answer-btn';
+            btn.textContent = opt.text;
+            btn.onclick = () => handleAnswer(btn, opt);
+            container.appendChild(btn);
+        });
+    }
+
+    function handleAnswer(btn, option) {
+        // Buttons deaktivieren
+        const allBtns = document.querySelectorAll('.answer-btn');
+        allBtns.forEach(b => b.style.pointerEvents = 'none');
+
+        const feedback = document.getElementById('feedback-msg');
+
+        if (option.valid) {
+            btn.classList.add('correct');
+            feedback.textContent = "Richtig! Der Polizist glaubt Ihnen.";
+            feedback.style.color = "#66bb6a";
+            
+            setTimeout(() => {
+                currentQuestionIndex++;
+                loadQuestion(currentQuestionIndex);
+            }, 1500);
+        } else {
+            btn.classList.add('wrong');
+            mistakes++;
+            feedback.textContent = "Fehler! " + option.reason;
+            feedback.style.color = "#ef5350";
+            
+            setTimeout(() => {
+                // Auch bei Fehler weiter, aber man sammelt Punkte für "Schuldig"
+                currentQuestionIndex++;
+                loadQuestion(currentQuestionIndex);
+            }, 2500);
+        }
+    }
+
+    function showResult() {
+        document.getElementById('phase-game').classList.remove('active');
+        document.getElementById('phase-result').classList.add('active');
+        
+        const badge = document.getElementById('result-badge');
+        const title = document.getElementById('result-title');
+        const text = document.getElementById('result-text');
+
+        if (mistakes === 0) {
+            badge.className = "status-badge status-innocent";
+            badge.textContent = "UNSCHULDIG";
+            title.textContent = "Sie sind frei!";
+            title.style.color = "var(--correct)";
+            text.textContent = "Ihr Alibi war lückenlos und Ihr Russisch perfekt. Die Polizei hat Sie gehen lassen.";
+        } else {
+            badge.className = "status-badge status-guilty";
+            badge.textContent = "VERHAFTET";
+            title.textContent = "Widersprüche im Verhör!";
+            title.style.color = "var(--wrong)";
+            text.textContent = `Sie haben sich ${mistakes} mal versprochen (Grammatik oder Inhalt). Die Polizei glaubt Ihnen nicht.`;
+        }
+    }
+</script>
+
+</body>
+</html>
