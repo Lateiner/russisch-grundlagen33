@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Russisch: Negations-Training (Sofort-Feedback)</title>
+    <!-- Polyfill für Touch-Support auf Smartphones -->
+    <script src="https://cdn.jsdelivr.net/npm/drag-drop-touch@1.3.1/DragDropTouch.js"></script>
+    <style>
+        :root {
+            --primary: #3f51b5;
+            --primary-light: #e8eaf6;
+            --bg-color: #f4f7f6;
+            --text-color: #333;
+            
+            --correct-bg: #e8f5e9;
+            --correct-border: #2e7d32;
+            --wrong-bg: #ffebee;
+            --wrong-border: #c62828;
+            
+            --card-bg: #ffffff;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px;
+            line-height: 1.5;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        h2 {
+            text-align: center;
+            color: var(--primary);
+            margin-bottom: 10px;
+        }
+
+        .instruction {
+            background-color: var(--primary-light);
+            padding: 15px;
+            border-left: 5px solid var(--primary);
+            margin-bottom: 30px;
+            border-radius: 4px;
+        }
+
+        /* --- Aufgaben-Karten --- */
+        .task-card {
+            background-color: var(--card-bg);
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 25px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+
+        .positive-sentence {
+            font-size: 1.2em;
+            color: #444;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px dashed #ccc;
+        }
+
+        .positive-sentence strong {
+            color: #2e7d32;
+        }
+
+        .negative-sentence-area {
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+            font-size: 1.2em;
+            font-weight: bold;
+            margin-bottom: 15px;
+        }
+
+        /* Dropzones */
+        .dropzone {
+            min-width: 120px;
+            height: 45px;
+            border: 2px dashed #bbb;
+            background-color: #f9f9f9;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0 10px;
+            transition: all 0.3s ease;
+        }
+
+        .dropzone.dragover {
+            background-color: #e3f2fd;
+            border-color: var(--primary);
+            transform: scale(1.05);
+        }
+
+        /* Feedback Styles (Sofort) */
+        .dropzone.correct {
+            background-color: var(--correct-bg);
+            border-color: var(--correct-border);
+            border-style: solid;
+            box-shadow: 0 0 5px rgba(76, 175, 80, 0.5);
+        }
+
+        .dropzone.wrong {
+            background-color: var(--wrong-bg);
+            border-color: var(--wrong-border);
+            border-style: solid;
+            box-shadow: 0 0 5px rgba(244, 67, 54, 0.5);
+        }
+
+        .word-pool {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            padding: 10px;
+            background-color: #eee;
+            border-radius: 6px;
+            min-height: 50px;
+        }
+
+        .draggable {
+            background-color: var(--primary);
+            color: white;
+            padding: 8px 15px;
+            border-radius: 20px;
+            cursor: grab;
+            font-size: 1rem;
+            user-select: none;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            transition: transform 0.1s;
+        }
+
+        .draggable:active {
+            cursor: grabbing;
+            transform: scale(0.95);
+        }
+
+        .static-text {
+            color: #c62828;
+        }
+
+        /* --- Buttons --- */
+        .controls {
+            margin-top: 30px;
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            flex-wrap: wrap;
+            border-top: 1px solid #eee;
+            padding-top: 20px;
+        }
+
+        button.ctrl-btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 50px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.1s;
+            min-width: 140px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            color: white;
+        }
+
+        button.ctrl-btn:active { transform: scale(0.96); }
+        .btn-reset { background-color: #78909c; }
+        .btn-solve { background-color: #ff4081; }
+
+        @media (max-width: 600px) {
+            .container { padding: 15px; }
+            .negative-sentence-area { font-size: 1.1em; }
+            .controls { flex-direction: column; }
+            button.ctrl-btn { width: 100%; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Negations-Training</h2>
+    
+    <div class="instruction">
+        <strong>Aufgabe:</strong> Bilden Sie den negativen Satz.<br>
+        Ziehen Sie das korrekte Verb und die korrekte Form des Wortes (Genitiv!) in die Lücken.<br>
+        <em>Hinweis: Sie erhalten sofort Feedback (Grün/Rot).</em>
+    </div>
+
+    <!-- Aufgabe 1 -->
+    <div class="task-card" id="task1">
+        <div class="positive-sentence">Positiv: <strong>Я</strong> был там.</div>
+        <div class="negative-sentence-area">
+            Negativ: 
+            <div class="dropzone" data-correct="Меня"></div>
+            <div class="dropzone" data-correct="не было"></div>
+            <span class="static-text">там.</span>
+        </div>
+        <div class="word-pool" id="pool1">
+            <div class="draggable" draggable="true" id="d1-1" data-val="Я">Я</div>
+            <div class="draggable" draggable="true" id="d1-2" data-val="Меня">Меня</div>
+            <div class="draggable" draggable="true" id="d1-3" data-val="не было">не было</div>
+            <div class="draggable" draggable="true" id="d1-4" data-val="не был">не был</div>
+        </div>
+    </div>
+
+    <!-- Aufgabe 2 -->
+    <div class="task-card" id="task2">
+        <div class="positive-sentence">Positiv: У меня был <strong>билет</strong>.</div>
+        <div class="negative-sentence-area">
+            Negativ: <span class="static-text">У меня</span>
+            <div class="dropzone" data-correct="не было"></div>
+            <div class="dropzone" data-correct="билета"></div>
+        </div>
+        <div class="word-pool" id="pool2">
+            <div class="draggable" draggable="true" id="d2-1" data-val="билет">билет</div>
+            <div class="draggable" draggable="true" id="d2-2" data-val="билета">билета</div>
+            <div class="draggable" draggable="true" id="d2-3" data-val="не было">не было</div>
+            <div class="draggable" draggable="true" id="d2-4" data-val="не был">не был</div>
+        </div>
+    </div>
+
+    <!-- Aufgabe 3 -->
+    <div class="task-card" id="task3">
+        <div class="positive-sentence">Positiv: У брата была <strong>машина</strong>.</div>
+        <div class="negative-sentence-area">
+            Negativ: <span class="static-text">У брата</span>
+            <div class="dropzone" data-correct="не было"></div>
+            <div class="dropzone" data-correct="машины"></div>
+        </div>
+        <div class="word-pool" id="pool3">
+            <div class="draggable" draggable="true" id="d3-1" data-val="машина">машина</div>
+            <div class="draggable" draggable="true" id="d3-2" data-val="машины">машины</div>
+            <div class="draggable" draggable="true" id="d3-3" data-val="не было">не было</div>
+            <div class="draggable" draggable="true" id="d3-4" data-val="не была">не была</div>
+        </div>
+    </div>
+
+    <!-- Aufgabe 4 -->
+    <div class="task-card" id="task4">
+        <div class="positive-sentence">Positiv: <strong>Иван</strong> был дома.</div>
+        <div class="negative-sentence-area">
+            Negativ: 
+            <div class="dropzone" data-correct="Ивана"></div>
+            <div class="dropzone" data-correct="не было"></div>
+            <span class="static-text">дома.</span>
+        </div>
+        <div class="word-pool" id="pool4">
+            <div class="draggable" draggable="true" id="d4-1" data-val="Иван">Иван</div>
+            <div class="draggable" draggable="true" id="d4-2" data-val="Ивана">Ивана</div>
+            <div class="draggable" draggable="true" id="d4-3" data-val="не было">не было</div>
+            <div class="draggable" draggable="true" id="d4-4" data-val="не был">не был</div>
+        </div>
+    </div>
+
+    <!-- Aufgabe 5 -->
+    <div class="task-card" id="task5">
+        <div class="positive-sentence">Positiv: <strong>Мы</strong> были в кино.</div>
+        <div class="negative-sentence-area">
+            Negativ: 
+            <div class="dropzone" data-correct="Нас"></div>
+            <div class="dropzone" data-correct="не было"></div>
+            <span class="static-text">в кино.</span>
+        </div>
+        <div class="word-pool" id="pool5">
+            <div class="draggable" draggable="true" id="d5-1" data-val="Мы">Мы</div>
+            <div class="draggable" draggable="true" id="d5-2" data-val="Нас">Нас</div>
+            <div class="draggable" draggable="true" id="d5-3" data-val="не было">не было</div>
+            <div class="draggable" draggable="true" id="d5-4" data-val="не были">не были</div>
+        </div>
+    </div>
+
+    <!-- Steuerung -->
+    <div class="controls">
+        <button class="ctrl-btn btn-reset" onclick="resetAll()">Alle Zurücksetzen</button>
+        <button class="ctrl-btn btn-solve" onclick="solveAll()">Lösung anzeigen</button>
+    </div>
+
+</div>
+
+<script>
+    /* Drag & Drop Logic */
+    let draggedItem = null;
+    let originalParent = null;
+
+    // Drag Events
+    document.addEventListener('dragstart', function(e) {
+        if (e.target.classList.contains('draggable')) {
+            draggedItem = e.target;
+            originalParent = e.target.parentElement;
+            e.dataTransfer.setData('text/plain', e.target.id);
+            setTimeout(() => e.target.style.opacity = '0.5', 0);
+        }
+    });
+
+    document.addEventListener('dragend', function(e) {
+        if (e.target.classList.contains('draggable')) {
+            e.target.style.opacity = '1';
+            draggedItem = null;
+            originalParent = null;
+        }
+    });
+
+    // Dropzone Events
+    const zones = document.querySelectorAll('.dropzone, .word-pool');
+
+    zones.forEach(zone => {
+        zone.addEventListener('dragover', function(e) {
+            e.preventDefault();
+            if (zone.classList.contains('dropzone')) {
+                zone.classList.add('dragover');
+            }
+        });
+
+        zone.addEventListener('dragleave', function(e) {
+            if (zone.classList.contains('dropzone')) {
+                zone.classList.remove('dragover');
+            }
+        });
+
+        zone.addEventListener('drop', function(e) {
+            e.preventDefault();
+            if (zone.classList.contains('dropzone')) zone.classList.remove('dragover');
+
+            if (draggedItem) {
+                // Logik für Drop in Word-Pool (Zurücklegen)
+                if (zone.classList.contains('word-pool')) {
+                    const parentCard = zone.closest('.task-card');
+                    const itemCard = draggedItem.closest('.task-card');
+                    
+                    if (parentCard === itemCard || !itemCard) { 
+                        zone.appendChild(draggedItem);
+                    }
+                } 
+                // Logik für Drop in Dropzone (Antworten)
+                else if (zone.classList.contains('dropzone')) {
+                    const zoneCard = zone.closest('.task-card');
+                    const itemCard = draggedItem.closest('.task-card');
+
+                    if (zoneCard === itemCard) {
+                        // Wenn Zone voll, tauschen
+                        if (zone.children.length > 0) {
+                            const existingItem = zone.children[0];
+                            const pool = zoneCard.querySelector('.word-pool');
+                            pool.appendChild(existingItem);
+                        }
+                        zone.appendChild(draggedItem);
+                        
+                        // SOFORTIGES FEEDBACK
+                        validateZone(zone);
+                    }
+                }
+
+                // Aufräumen der alten Zone (wenn wir ein Item rausgezogen haben)
+                // 'originalParent' wurde beim dragstart gespeichert
+                if (originalParent && originalParent.classList.contains('dropzone')) {
+                    // Überprüfen, ob die alte Zone leer ist (der Browser hat das Element verschoben)
+                    if (originalParent.children.length === 0) {
+                        originalParent.classList.remove('correct', 'wrong');
+                    } else {
+                        // Falls wir getauscht haben, validiere die alte Zone erneut
+                        validateZone(originalParent);
+                    }
+                }
+            }
+        });
+    });
+
+    /**
+     * Prüft eine einzelne Zone und setzt Farben
+     */
+    function validateZone(zone) {
+        const correctVal = zone.getAttribute('data-correct');
+        
+        // Zuerst Klassen entfernen
+        zone.classList.remove('correct', 'wrong');
+
+        if (zone.children.length > 0) {
+            const item = zone.children[0];
+            const userVal = item.getAttribute('data-val');
+            
+            if (userVal === correctVal) {
+                zone.classList.add('correct');
+            } else {
+                zone.classList.add('wrong');
+            }
+        }
+    }
+
+    /* Globale Steuerungsfunktionen */
+
+    function resetAll() {
+        const tasks = document.querySelectorAll('.task-card');
+        
+        tasks.forEach(card => {
+            const pool = card.querySelector('.word-pool');
+            const draggables = card.querySelectorAll('.draggable');
+            const dropzones = card.querySelectorAll('.dropzone');
+
+            // Items zurück in den Pool
+            draggables.forEach(d => {
+                pool.appendChild(d);
+            });
+
+            // Zonen reset
+            dropzones.forEach(z => z.classList.remove('correct', 'wrong'));
+        });
+    }
+
+    function solveAll() {
+        resetAll(); // Erst alles aufräumen
+        const tasks = document.querySelectorAll('.task-card');
+
+        tasks.forEach(card => {
+            const dropzones = card.querySelectorAll('.dropzone');
+            const pool = card.querySelector('.word-pool');
+            const draggables = Array.from(pool.children);
+
+            dropzones.forEach(zone => {
+                const correctVal = zone.getAttribute('data-correct');
+                const correctItem = draggables.find(d => d.getAttribute('data-val') === correctVal);
+                
+                if (correctItem) {
+                    zone.appendChild(correctItem);
+                    // Manuell Validierung aufrufen für Feedback-Farbe
+                    validateZone(zone);
+                }
+            });
+        });
+    }
+
+</script>
+
+</body>
+</html>
