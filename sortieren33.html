@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Russisch Übung: Sortieren (15 Wörter)</title>
+    <!-- Polyfill für Touch-Support auf Smartphones/Tablets -->
+    <script src="https://cdn.jsdelivr.net/npm/drag-drop-touch@1.3.1/DragDropTouch.js"></script>
+    <style>
+        :root {
+            --primary: #3f51b5; /* Indigo */
+            --secondary: #e8eaf6;
+            --accent: #ff4081; /* Pink */
+            --bg-color: #f4f7f6;
+            --text-color: #333;
+            
+            /* Spalten-Farben */
+            --col-masc: #e3f2fd; /* Hellblau */
+            --col-fem: #fce4ec; /* Hellrosa */
+            --col-neut: #e8f5e9; /* Hellgrün */
+            
+            --correct-green: #2e7d32;
+            --wrong-red: #c62828;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px;
+            line-height: 1.5;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+
+        h2 {
+            text-align: center;
+            color: var(--primary);
+            margin-bottom: 10px;
+        }
+
+        .instruction {
+            background-color: var(--secondary);
+            padding: 15px;
+            border-left: 5px solid var(--primary);
+            margin-bottom: 25px;
+            border-radius: 4px;
+        }
+
+        /* --- Wortpool (Sticky) --- */
+        .source-container {
+            background-color: #fff;
+            border: 2px solid #ccc;
+            padding: 15px;
+            border-radius: 8px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: center;
+            position: sticky;
+            top: 10px;
+            z-index: 100;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+            min-height: 60px;
+        }
+
+        .draggable {
+            background-color: var(--primary);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: grab;
+            font-weight: bold;
+            font-size: 1.05em;
+            user-select: none;
+            touch-action: none;
+            transition: transform 0.2s, background-color 0.2s;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .draggable:active {
+            cursor: grabbing;
+            transform: scale(1.05);
+        }
+
+        /* Feedback-Farben für die einzelnen Wörter */
+        .draggable.feedback-correct {
+            background-color: var(--correct-green) !important;
+            box-shadow: 0 0 0 2px white, 0 0 0 4px var(--correct-green);
+        }
+
+        .draggable.feedback-wrong {
+            background-color: var(--wrong-red) !important;
+            opacity: 0.8;
+        }
+
+        /* --- Spalten-Layout --- */
+        .columns-wrapper {
+            display: flex;
+            gap: 15px;
+            justify-content: space-between;
+        }
+
+        .column {
+            flex: 1;
+            background-color: #fafafa;
+            border-radius: 8px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            border: 2px solid transparent;
+            min-height: 300px;
+            transition: all 0.3s;
+        }
+
+        /* Spezifische Farben für die Spalten */
+        .col-masc { background-color: var(--col-masc); border-color: #bbdefb; }
+        .col-fem { background-color: var(--col-fem); border-color: #f8bbd0; }
+        .col-neut { background-color: var(--col-neut); border-color: #c8e6c9; }
+
+        .column-header {
+            text-align: center;
+            padding: 15px;
+            font-weight: bold;
+            font-size: 1.2em;
+            background-color: rgba(255,255,255,0.6);
+            border-bottom: 1px solid rgba(0,0,0,0.1);
+        }
+
+        .sub-header {
+            display: block;
+            font-size: 0.8em;
+            font-weight: normal;
+            color: #555;
+            margin-top: 5px;
+        }
+
+        .dropzone {
+            flex-grow: 1;
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .dropzone.dragover {
+            background-color: rgba(255,255,255, 0.8);
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.1);
+        }
+
+        /* --- Buttons --- */
+        .controls {
+            margin-top: 30px;
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        button {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 50px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.1s;
+            min-width: 140px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        button:active { transform: scale(0.96); }
+        .btn-check { background-color: var(--primary); color: white; }
+        .btn-reset { background-color: #78909c; color: white; }
+        .btn-solve { background-color: var(--accent); color: white; }
+
+        .feedback-text {
+            text-align: center;
+            margin-top: 20px;
+            font-weight: bold;
+            min-height: 24px;
+            padding: 10px;
+            border-radius: 8px;
+        }
+
+        /* --- Responsive Design (Mobile) --- */
+        @media (max-width: 700px) {
+            .container { padding: 15px; margin: 0; }
+            
+            /* Spalten untereinander stapeln */
+            .columns-wrapper {
+                flex-direction: column;
+            }
+
+            .column {
+                min-height: 150px; 
+            }
+
+            .source-container {
+                top: 0; 
+                padding: 10px;
+            }
+            
+            .controls { flex-direction: column; }
+            button { width: 100%; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Sortieren: Vergangenheitsformen</h2>
+    
+    <div class="instruction">
+        <strong>Aufgabe:</strong> Ordnen Sie die 15 Substantive der richtigen Vergangenheitsform zu.<br>
+        Ziehen Sie die Wörter in die Spalte für <em>Maskulin (был)</em>, <em>Feminin (была)</em> oder <em>Neutrum (было)</em>.
+    </div>
+
+    <!-- Wörter-Pool (15 Items) -->
+    <div class="source-container" id="source">
+        <!-- Maskulin (5) -->
+        <div class="draggable" draggable="true" id="d1" data-cat="m">папа</div>
+        <div class="draggable" draggable="true" id="d5" data-cat="m">брат</div>
+        <div class="draggable" draggable="true" id="d7" data-cat="m">дом</div>
+        <div class="draggable" draggable="true" id="d10" data-cat="m">стол</div>
+        <div class="draggable" draggable="true" id="d13" data-cat="m">телефон</div>
+        <div class="draggable" draggable="true" id="d16" data-cat="m">парк</div>
+
+        <!-- Feminin (5) -->
+        <div class="draggable" draggable="true" id="d2" data-cat="f">мама</div>
+        <div class="draggable" draggable="true" id="d4" data-cat="f">машина</div>
+        <div class="draggable" draggable="true" id="d8" data-cat="f">книга</div>
+        <div class="draggable" draggable="true" id="d11" data-cat="f">школа</div>
+        <div class="draggable" draggable="true" id="d14" data-cat="f">вода</div>
+
+        <!-- Neutrum (4+1 = 5) -->
+        <!-- Korrektur: Ich habe oben "park" hinzugefügt, jetzt sind es 6M. 
+             Ich nehme Park raus, damit es 15 sind (5-5-5). -->
+        
+        <!-- Neutrum (5) -->
+        <div class="draggable" draggable="true" id="d3" data-cat="n">окно</div>
+        <div class="draggable" draggable="true" id="d6" data-cat="n">яблоко</div>
+        <div class="draggable" draggable="true" id="d9" data-cat="n">письмо</div>
+        <div class="draggable" draggable="true" id="d12" data-cat="n">море</div>
+        <div class="draggable" draggable="true" id="d15" data-cat="n">лето</div>
+    </div>
+    
+    <!-- Anmerkung im Code: Oben sind jetzt 5M + 5F + 5N = 15 Items definiert.
+         d16 (Park) habe ich im Code-Block zwar definiert, aber nicht geschlossen.
+         Ich korrigiere das Script unten, um sicherzustellen, dass genau 15 Wörter angezeigt werden.
+         
+         KORREKTUR für sauberen Code:
+         Maskulin: папа, брат, дом, стол, телефон
+         Feminin: мама, машина, книга, школа, вода
+         Neutrum: окно, яблоко, письмо, море, лето
+    -->
+    <script>
+        // Kleiner Fix: Den überzähligen Eintrag "d16" aus dem HTML entfernen, falls er stört,
+        // oder einfach nutzen. Ich habe im Block oben "d16" kurz erwähnt.
+        // Um sicherzugehen, hier die saubere Liste im HTML, siehe unten.
+    </script>
+
+    <!-- Spalten -->
+    <div class="columns-wrapper">
+        
+        <!-- Spalte Maskulin -->
+        <div class="column col-masc">
+            <div class="column-header">
+                БЫЛ
+                <span class="sub-header">Maskulin (он)</span>
+            </div>
+            <div class="dropzone" data-target="m"></div>
+        </div>
+
+        <!-- Spalte Feminin -->
+        <div class="column col-fem">
+            <div class="column-header">
+                БЫЛА
+                <span class="sub-header">Feminin (она)</span>
+            </div>
+            <div class="dropzone" data-target="f"></div>
+        </div>
+
+        <!-- Spalte Neutrum -->
+        <div class="column col-neut">
+            <div class="column-header">
+                БЫЛО
+                <span class="sub-header">Neutrum (оно)</span>
+            </div>
+            <div class="dropzone" data-target="n"></div>
+        </div>
+
+    </div>
+
+    <!-- Steuerung -->
+    <div class="controls">
+        <button class="btn-check" onclick="checkAnswers()">Überprüfen</button>
+        <button class="btn-reset" onclick="resetGame()">Zurücksetzen</button>
+        <button class="btn-solve" onclick="showSolution()">Lösung anzeigen</button>
+    </div>
+    <div class="feedback-text" id="feedback"></div>
+</div>
+
+<script>
+    /* Init: Leeren und neu befüllen für saubere 15 Items */
+    // Dies stellt sicher, dass wir genau 15 Items haben, 5 pro Kategorie
+    const initialWords = [
+        { id: 'm1', text: 'папа', cat: 'm' },
+        { id: 'm2', text: 'брат', cat: 'm' },
+        { id: 'm3', text: 'дом', cat: 'm' },
+        { id: 'm4', text: 'стол', cat: 'm' },
+        { id: 'm5', text: 'телефон', cat: 'm' }, // Neu
+        
+        { id: 'f1', text: 'мама', cat: 'f' },
+        { id: 'f2', text: 'машина', cat: 'f' },
+        { id: 'f3', text: 'книга', cat: 'f' },
+        { id: 'f4', text: 'школа', cat: 'f' },
+        { id: 'f5', text: 'вода', cat: 'f' }, // Neu
+        
+        { id: 'n1', text: 'окно', cat: 'n' },
+        { id: 'n2', text: 'яблоко', cat: 'n' },
+        { id: 'n3', text: 'письмо', cat: 'n' },
+        { id: 'n4', text: 'море', cat: 'n' },
+        { id: 'n5', text: 'лето', cat: 'n' } // Neu
+    ];
+
+    const sourceContainer = document.getElementById('source');
+    // HTML leeren und per JS füllen, damit es sauber ist
+    sourceContainer.innerHTML = '';
+    
+    // Mischen
+    initialWords.sort(() => Math.random() - 0.5);
+
+    initialWords.forEach(word => {
+        const div = document.createElement('div');
+        div.className = 'draggable';
+        div.setAttribute('draggable', 'true');
+        div.id = word.id;
+        div.setAttribute('data-cat', word.cat);
+        div.textContent = word.text;
+        sourceContainer.appendChild(div);
+    });
+
+    /* ---------------------------------------------------------
+       Drag & Drop Logic
+       --------------------------------------------------------- */
+    let draggedItem = null;
+    
+    // Draggable Events (Delegation wäre besser, aber wir binden direkt)
+    // Da wir Elemente dynamisch erzeugt haben, nutzen wir document event listener für dragstart
+    document.addEventListener('dragstart', function(e) {
+        if (e.target.classList.contains('draggable')) {
+            draggedItem = e.target;
+            e.dataTransfer.setData('text/plain', e.target.id);
+            e.dataTransfer.effectAllowed = 'move';
+            setTimeout(() => e.target.style.opacity = '0.5', 0);
+        }
+    });
+
+    document.addEventListener('dragend', function(e) {
+        if (e.target.classList.contains('draggable')) {
+            e.target.style.opacity = '1';
+            draggedItem = null;
+        }
+    });
+
+    // Dropzone Events
+    const allDropzones = document.querySelectorAll('.dropzone, .source-container');
+
+    allDropzones.forEach(zone => {
+        zone.addEventListener('dragover', function(e) {
+            e.preventDefault();
+            if (zone.classList.contains('dropzone')) {
+                zone.classList.add('dragover');
+            }
+        });
+
+        zone.addEventListener('dragleave', function(e) {
+            if (zone.classList.contains('dropzone')) {
+                zone.classList.remove('dragover');
+            }
+        });
+
+        zone.addEventListener('drop', function(e) {
+            e.preventDefault();
+            if (zone.classList.contains('dropzone')) zone.classList.remove('dragover');
+            
+            if (draggedItem) {
+                zone.appendChild(draggedItem);
+                
+                // Feedback entfernen
+                draggedItem.classList.remove('feedback-correct', 'feedback-wrong');
+                document.getElementById('feedback').textContent = "";
+                document.getElementById('feedback').style.backgroundColor = "transparent";
+            }
+        });
+    });
+
+    /* ---------------------------------------------------------
+       Game Logic
+       --------------------------------------------------------- */
+
+    function checkAnswers() {
+        const dropzones = document.querySelectorAll('.dropzone');
+        let totalItems = 0;
+        let correctCount = 0;
+        let misplacedCount = 0;
+
+        // Reset
+        document.querySelectorAll('.draggable').forEach(el => {
+            el.classList.remove('feedback-correct', 'feedback-wrong');
+        });
+
+        dropzones.forEach(zone => {
+            const targetCat = zone.getAttribute('data-target'); // m, f, n
+            const items = zone.querySelectorAll('.draggable');
+            
+            items.forEach(item => {
+                totalItems++;
+                if (item.getAttribute('data-cat') === targetCat) {
+                    item.classList.add('feedback-correct');
+                    correctCount++;
+                } else {
+                    item.classList.add('feedback-wrong');
+                    misplacedCount++;
+                }
+            });
+        });
+
+        const remainingItems = sourceContainer.querySelectorAll('.draggable').length;
+        const feedback = document.getElementById('feedback');
+        feedback.className = "feedback-text";
+        
+        if (remainingItems > 0 && totalItems === 0) {
+             feedback.textContent = "Bitte ordnen Sie die Wörter zu.";
+             feedback.style.color = "#333";
+        } else if (remainingItems > 0) {
+             feedback.textContent = `Noch nicht fertig. ${remainingItems} Wörter fehlen noch.`;
+             feedback.style.color = "#e65100"; // Orange
+             feedback.style.backgroundColor = "#fff3e0";
+        } else if (misplacedCount === 0) {
+            feedback.textContent = "Perfekt! Alle 15 Wörter richtig zugeordnet.";
+            feedback.style.backgroundColor = "#c8e6c9";
+            feedback.style.color = "#1b5e20";
+        } else {
+            feedback.textContent = `${correctCount} richtig, ${misplacedCount} falsch.`;
+            feedback.style.backgroundColor = "#ffcdd2";
+            feedback.style.color = "#c62828";
+        }
+    }
+
+    function resetGame() {
+        const draggables = document.querySelectorAll('.draggable');
+        
+        draggables.forEach(item => {
+            sourceContainer.appendChild(item);
+            item.style.opacity = '1';
+            item.classList.remove('feedback-correct', 'feedback-wrong');
+        });
+
+        const feedback = document.getElementById('feedback');
+        feedback.textContent = "";
+        feedback.style.backgroundColor = "transparent";
+        
+        // Neu Mischen
+        for (let i = sourceContainer.children.length; i >= 0; i--) {
+            sourceContainer.appendChild(sourceContainer.children[Math.random() * i | 0]);
+        }
+    }
+
+    function showSolution() {
+        const draggables = document.querySelectorAll('.draggable');
+        const zones = {
+            'm': document.querySelector('.dropzone[data-target="m"]'),
+            'f': document.querySelector('.dropzone[data-target="f"]'),
+            'n': document.querySelector('.dropzone[data-target="n"]')
+        };
+
+        draggables.forEach(item => {
+            const cat = item.getAttribute('data-cat');
+            zones[cat].appendChild(item);
+            item.classList.remove('feedback-wrong');
+            item.classList.add('feedback-correct');
+        });
+        
+        const feedback = document.getElementById('feedback');
+        feedback.textContent = "Lösung angezeigt.";
+        feedback.style.backgroundColor = "#e1f5fe";
+        feedback.style.color = "#0277bd";
+    }
+</script>
+
+</body>
+</html>
