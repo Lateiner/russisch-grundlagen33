@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Russisch Drill: Substitution (Ohne Hinweise)</title>
+    <!-- Polyfill für Touch-Support -->
+    <script src="https://cdn.jsdelivr.net/npm/drag-drop-touch@1.3.1/DragDropTouch.js"></script>
+    <style>
+        :root {
+            --primary: #3f51b5;
+            --primary-light: #e8eaf6;
+            --bg-color: #f4f7f6;
+            --text-color: #333;
+            
+            --correct-bg: #4caf50;
+            --correct-dark: #2e7d32;
+            --wrong-bg: #f44336;
+            --wrong-dark: #c62828;
+            
+            --card-bg: #ffffff;
+            --btn-default: #f5f5f5;
+            --btn-border: #ddd;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px;
+            line-height: 1.5;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        h2 {
+            text-align: center;
+            color: var(--primary);
+            margin-bottom: 10px;
+        }
+
+        .instruction {
+            background-color: var(--primary-light);
+            padding: 15px;
+            border-left: 5px solid var(--primary);
+            margin-bottom: 30px;
+            border-radius: 4px;
+        }
+
+        /* --- Beispiel-Box --- */
+        .example-box {
+            background-color: #fff3e0;
+            border: 1px solid #ffe0b2;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+            text-align: center;
+            font-style: italic;
+            color: #ef6c00;
+        }
+
+        /* --- Drill Item Layout --- */
+        .drill-item {
+            background-color: var(--card-bg);
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+            transition: all 0.3s ease;
+        }
+
+        /* Status Styles für die Karte */
+        .drill-item.completed-correct { border-left: 5px solid var(--correct-bg); background-color: #f1f8e9; }
+        .drill-item.completed-wrong { border-left: 5px solid var(--wrong-bg); }
+
+        /* 1. Spalte: Das neue Subjekt */
+        .subject-box {
+            flex: 1;
+            min-width: 120px;
+            font-weight: bold;
+            font-size: 1.3em; /* Etwas größer, da keine Hinweise mehr da sind */
+            display: flex;
+            align-items: center;
+            color: var(--primary);
+        }
+
+        /* 2. Spalte: Die Buttons */
+        .verb-options {
+            flex: 2;
+            display: flex;
+            gap: 8px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .drill-btn {
+            padding: 10px 15px;
+            border: 2px solid var(--btn-border);
+            background-color: var(--btn-default);
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 1.1em;
+            min-width: 70px;
+            text-align: center;
+            transition: all 0.2s;
+            user-select: none;
+        }
+
+        .drill-btn:hover:not(.disabled) {
+            background-color: #e3f2fd;
+            border-color: var(--primary);
+            transform: translateY(-2px);
+        }
+
+        /* Button States */
+        .drill-btn.correct {
+            background-color: var(--correct-bg);
+            border-color: var(--correct-dark);
+            color: white;
+        }
+
+        .drill-btn.wrong {
+            background-color: var(--wrong-bg);
+            border-color: var(--wrong-dark);
+            color: white;
+            opacity: 0.6;
+        }
+
+        .drill-btn.disabled {
+            cursor: default;
+            pointer-events: none;
+        }
+        
+        .drill-btn.dimmed {
+            opacity: 0.3;
+        }
+
+        /* 3. Spalte: Der Rest des Satzes / Ergebnis */
+        .sentence-rest {
+            flex: 1.5;
+            font-size: 1.1em;
+            color: #555;
+            min-width: 180px;
+            text-align: left;
+            padding-left: 10px;
+            border-left: 2px solid #eee;
+        }
+
+        /* Ergebnis-Text (erscheint nach Erfolg) */
+        .result-sentence {
+            display: none;
+            color: var(--correct-dark);
+            font-weight: bold;
+            animation: fadeIn 0.5s;
+        }
+        
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        /* --- Steuerung --- */
+        .controls {
+            margin-top: 30px;
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            flex-wrap: wrap;
+            border-top: 1px solid #eee;
+            padding-top: 20px;
+        }
+
+        button.ctrl-btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 50px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.1s;
+            min-width: 140px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            color: white;
+        }
+
+        button.ctrl-btn:active { transform: scale(0.96); }
+        .btn-reset { background-color: #78909c; }
+        .btn-solve { background-color: #ff4081; }
+
+        /* Responsive Design */
+        @media (max-width: 700px) {
+            .container { padding: 15px; }
+            
+            .drill-item {
+                flex-direction: column;
+                align-items: stretch;
+                text-align: center;
+                gap: 10px;
+            }
+
+            .subject-box { justify-content: center; border-bottom: 1px solid #eee; padding-bottom: 10px; }
+            .sentence-rest { 
+                border-left: none; 
+                border-top: 1px solid #eee; 
+                padding-top: 10px; 
+                padding-left: 0; 
+                text-align: center; 
+            }
+            .verb-options { justify-content: space-between; }
+            .drill-btn { flex: 1; }
+            .controls { flex-direction: column; }
+            button.ctrl-btn { width: 100%; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Substitutions-Drill: Subjekt & Verb</h2>
+    
+    <div class="instruction">
+        <strong>Aufgabe:</strong> Ersetzen Sie das Subjekt im Satz. <br>
+        Klicken Sie auf die passende Form von <strong>„sein“</strong> (Vergangenheit), um den Satz korrekt zu bilden.
+    </div>
+
+    <div class="example-box">
+        Basis-Satz: <strong>Иван</strong> <u>был</u> в кино.<br>
+        Neues Subjekt: <strong>Анна</strong> &rarr; Анна <u>была</u> в кино.
+    </div>
+
+    <!-- Drill 1 -->
+    <div class="drill-item" id="d1" data-correct="была">
+        <div class="subject-box">Анна</div>
+        <div class="verb-options">
+            <div class="drill-btn" onclick="checkDrill(this, 'был')">был</div>
+            <div class="drill-btn" onclick="checkDrill(this, 'была')">была</div>
+            <div class="drill-btn" onclick="checkDrill(this, 'было')">было</div>
+            <div class="drill-btn" onclick="checkDrill(this, 'были')">были</div>
+        </div>
+        <div class="sentence-rest">
+            <span class="context">... дома.</span>
+            <div class="result-sentence">Анна была дома.</div>
+        </div>
+    </div>
+
+    <!-- Drill 2 -->
+    <div class="drill-item" id="d2" data-correct="был">
+        <div class="subject-box">Брат</div>
+        <div class="verb-options">
+            <div class="drill-btn" onclick="checkDrill(this, 'был')">был</div>
+            <div class="drill-btn" onclick="checkDrill(this, 'была')">была</div>
+            <div class="drill-btn" onclick="checkDrill(this, 'было')">было</div>
+            <div class="drill-btn" onclick="checkDrill(this, 'были')">были</div>
+        </div>
+        <div class="sentence-rest">
+            <span class="context">... в школе.</span>
+            <div class="result-sentence">Брат был в школе.</div>
+        </div>
+    </div>
+
+    <!-- Drill 3 -->
+    <div class="drill-item" id="d3" data-correct="были">
+        <div class="subject-box">Мы</div>
+        <div class="verb-options">
+            <div class="drill-btn" onclick="checkDrill(this, 'был')">был</div>
+            <div class="drill-btn" onclick="checkDrill(this, 'была')">была</div>
+            <div class="drill-btn" onclick="checkDrill(this, 'было')">было</div>
+            <div class="drill-btn" onclick="checkDrill(this, 'были')">были</div>
+        </div>
+        <div class="sentence-rest">
+            <span class="context">... в парке.</span>
+            <div class="result-sentence">Мы были в парке.</div>
+        </div>
+    </div>
+
+    <!-- Drill 4 -->
+    <div class="drill-item" id="d4" data-correct="было">
+        <div class="subject-box">Письмо</div>
+        <div class="verb-options">
+            <div class="drill-btn" onclick="checkDrill(this, 'был')">был</div>
+            <div class="drill-btn" onclick="checkDrill(this, 'была')">была</div>
+            <div class="drill-btn" onclick="checkDrill(this, 'было')">было</div>
+            <div class="drill-btn" onclick="checkDrill(this, 'были')">были</div>
+        </div>
+        <div class="sentence-rest">
+            <span class="context">... там.</span>
+            <div class="result-sentence">Письмо было там.</div>
+        </div>
+    </div>
+
+    <!-- Drill 5 -->
+    <div class="drill-item" id="d5" data-correct="были">
+        <div class="subject-box">Родители</div>
+        <div class="verb-options">
+            <div class="drill-btn" onclick="checkDrill(this, 'был')">был</div>
+            <div class="drill-btn" onclick="checkDrill(this, 'была')">была</div>
+            <div class="drill-btn" onclick="checkDrill(this, 'было')">было</div>
+            <div class="drill-btn" onclick="checkDrill(this, 'были')">были</div>
+        </div>
+        <div class="sentence-rest">
+            <span class="context">... на работе.</span>
+            <div class="result-sentence">Родители были на работе.</div>
+        </div>
+    </div>
+
+    <!-- Drill 6 -->
+    <div class="drill-item" id="d6" data-correct="был">
+        <div class="subject-box">Иван</div>
+        <div class="verb-options">
+            <div class="drill-btn" onclick="checkDrill(this, 'был')">был</div>
+            <div class="drill-btn" onclick="checkDrill(this, 'была')">была</div>
+            <div class="drill-btn" onclick="checkDrill(this, 'было')">было</div>
+            <div class="drill-btn" onclick="checkDrill(this, 'были')">были</div>
+        </div>
+        <div class="sentence-rest">
+            <span class="context">... здесь.</span>
+            <div class="result-sentence">Иван был здесь.</div>
+        </div>
+    </div>
+
+    <!-- Drill 7 -->
+    <div class="drill-item" id="d7" data-correct="была">
+        <div class="subject-box">Машина</div>
+        <div class="verb-options">
+            <div class="drill-btn" onclick="checkDrill(this, 'был')">был</div>
+            <div class="drill-btn" onclick="checkDrill(this, 'была')">была</div>
+            <div class="drill-btn" onclick="checkDrill(this, 'было')">было</div>
+            <div class="drill-btn" onclick="checkDrill(this, 'были')">были</div>
+        </div>
+        <div class="sentence-rest">
+            <span class="context">... в гараже.</span>
+            <div class="result-sentence">Машина была в гараже.</div>
+        </div>
+    </div>
+
+    <!-- Drill 8 -->
+    <div class="drill-item" id="d8" data-correct="было">
+        <div class="subject-box">Море</div>
+        <div class="verb-options">
+            <div class="drill-btn" onclick="checkDrill(this, 'был')">был</div>
+            <div class="drill-btn" onclick="checkDrill(this, 'была')">была</div>
+            <div class="drill-btn" onclick="checkDrill(this, 'было')">было</div>
+            <div class="drill-btn" onclick="checkDrill(this, 'были')">были</div>
+        </div>
+        <div class="sentence-rest">
+            <span class="context">... тёплое.</span>
+            <div class="result-sentence">Море было тёплое.</div>
+        </div>
+    </div>
+
+    <!-- Steuerung -->
+    <div class="controls">
+        <button class="ctrl-btn btn-reset" onclick="resetAll()">Alle Zurücksetzen</button>
+        <button class="ctrl-btn btn-solve" onclick="solveAll()">Alle Lösen</button>
+    </div>
+</div>
+
+<script>
+    function checkDrill(btn, selectedValue) {
+        const item = btn.closest('.drill-item');
+        const correctValue = item.getAttribute('data-correct');
+        const allBtns = item.querySelectorAll('.drill-btn');
+        const contextSpan = item.querySelector('.context');
+        const resultDiv = item.querySelector('.result-sentence');
+
+        // Check Logic
+        if (selectedValue === correctValue) {
+            // Correct
+            btn.classList.add('correct');
+            item.classList.add('completed-correct');
+            item.classList.remove('completed-wrong');
+            
+            // Show full sentence
+            contextSpan.style.display = 'none';
+            resultDiv.style.display = 'block';
+
+            // Disable all buttons
+            allBtns.forEach(b => {
+                b.classList.add('disabled');
+                if (b !== btn) b.classList.add('dimmed');
+            });
+        } else {
+            // Wrong
+            btn.classList.add('wrong');
+            // Disable only this wrong button
+            btn.classList.add('disabled'); 
+            
+            item.classList.add('completed-wrong');
+        }
+    }
+
+    function resetAll() {
+        const items = document.querySelectorAll('.drill-item');
+        items.forEach(item => {
+            item.classList.remove('completed-correct', 'completed-wrong');
+            
+            const btns = item.querySelectorAll('.drill-btn');
+            btns.forEach(b => {
+                b.classList.remove('correct', 'wrong', 'disabled', 'dimmed');
+            });
+
+            const contextSpan = item.querySelector('.context');
+            const resultDiv = item.querySelector('.result-sentence');
+            contextSpan.style.display = 'inline';
+            resultDiv.style.display = 'none';
+        });
+    }
+
+    function solveAll() {
+        resetAll(); // Clean start
+        const items = document.querySelectorAll('.drill-item');
+        
+        items.forEach(item => {
+            const correctVal = item.getAttribute('data-correct');
+            const btns = item.querySelectorAll('.drill-btn');
+            
+            btns.forEach(btn => {
+                if (btn.innerText.trim() === correctVal) {
+                    checkDrill(btn, correctVal);
+                }
+            });
+        });
+    }
+</script>
+
+</body>
+</html>
