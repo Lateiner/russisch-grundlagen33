@@ -1,0 +1,630 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Russisch: Zeitenwechsel (10 Sätze)</title>
+    <style>
+        :root {
+            --primary: #3f51b5;
+            --primary-light: #e8eaf6;
+            --bg-color: #f4f7f6;
+            --text-color: #333;
+            --border-radius: 8px;
+            
+            --correct-bg: #c8e6c9;
+            --correct-border: #2e7d32;
+            --wrong-bg: #ffcdd2;
+            --wrong-border: #c62828;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px;
+            line-height: 1.5;
+        }
+
+        .container {
+            max-width: 950px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: var(--border-radius);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        h2 {
+            text-align: center;
+            color: var(--primary);
+            margin-bottom: 10px;
+        }
+
+        .instruction {
+            background-color: var(--primary-light);
+            padding: 15px;
+            border-left: 5px solid var(--primary);
+            margin-bottom: 30px;
+            border-radius: 4px;
+        }
+
+        /* --- Transformation Row Styles --- */
+        .trans-row {
+            display: flex;
+            align-items: stretch;
+            background-color: #fff;
+            border: 1px solid #e0e0e0;
+            border-radius: var(--border-radius);
+            margin-bottom: 20px;
+            padding: 15px;
+            gap: 10px;
+            flex-wrap: wrap; 
+            transition: box-shadow 0.2s;
+        }
+
+        .trans-row:hover {
+            box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+        }
+
+        /* Nummerierung */
+        .row-number {
+            font-weight: bold;
+            color: var(--primary);
+            margin-right: 5px;
+            min-width: 25px;
+            display: flex;
+            align-items: center;
+        }
+
+        /* Die 3 Blöcke: Gegenwart, Vergangenheit, Zukunft */
+        .tense-block {
+            flex: 1;
+            min-width: 200px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding: 10px;
+            border-radius: 6px;
+            background-color: #fafafa;
+        }
+
+        .tense-label {
+            font-size: 0.8em;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #888;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+
+        .sentence-content {
+            font-size: 1.1em;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            flex-wrap: wrap;
+        }
+
+        /* Pfeile zwischen den Blöcken */
+        .arrow {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--primary);
+            font-size: 1.5em;
+            font-weight: bold;
+            padding: 0 5px;
+        }
+
+        /* --- Dropdowns --- */
+        select {
+            padding: 8px 12px;
+            font-size: 1em;
+            border: 2px solid #ccc;
+            border-radius: 4px;
+            background-color: white;
+            cursor: pointer;
+            outline: none;
+            font-family: inherit;
+            transition: all 0.3s;
+        }
+
+        select:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 5px rgba(63, 81, 181, 0.3);
+        }
+
+        /* Feedback Klassen */
+        select.correct {
+            border-color: var(--correct-border);
+            background-color: var(--correct-bg);
+            color: #1b5e20;
+        }
+
+        select.wrong {
+            border-color: var(--wrong-border);
+            background-color: var(--wrong-bg);
+            color: #b71c1c;
+        }
+
+        /* --- Buttons --- */
+        .controls {
+            margin-top: 30px;
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            flex-wrap: wrap;
+            border-top: 1px solid #eee;
+            padding-top: 20px;
+        }
+
+        button.ctrl-btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 50px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.1s;
+            min-width: 140px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            color: white;
+        }
+
+        button.ctrl-btn:active { transform: scale(0.96); }
+        .btn-reset { background-color: #78909c; }
+        .btn-solve { background-color: #ff4081; }
+
+        /* --- Responsive Design --- */
+        @media (max-width: 768px) {
+            .container { padding: 15px; margin: 0; }
+            
+            .trans-row {
+                flex-direction: column; 
+                gap: 0;
+            }
+
+            .tense-block {
+                width: 100%;
+                margin-bottom: 5px;
+                border-bottom: 1px dashed #eee;
+            }
+            
+            .tense-block:last-child {
+                border-bottom: none;
+                margin-bottom: 0;
+            }
+
+            .arrow {
+                transform: rotate(90deg); 
+                height: 30px;
+            }
+            
+            select { width: 100%; margin-top: 5px; }
+            .row-number { display: none; } /* Platz sparen auf Mobile */
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Transformation: Zeitenwechsel</h2>
+    
+    <div class="instruction">
+        <strong>Aufgabe:</strong> Wählen Sie die passende Form von <strong>„sein“</strong> für die Vergangenheit und die Zukunft.<br>
+        <em>Beispiel: У меня есть кот. -> У меня <strong>был</strong> кот. -> У меня <strong>будет</strong> кот.</em><br>
+        <span style="color:var(--primary); font-weight:bold;">Hinweis: Sie erhalten sofort Feedback (Grün/Rot) nach der Auswahl.</span>
+    </div>
+
+    <!-- Satz 1: Maskulin (Besitz) -->
+    <div class="trans-row">
+        <div class="row-number">1.</div>
+        <div class="tense-block">
+            <div class="tense-label">Gegenwart</div>
+            <div class="sentence-content">У меня есть <strong>кот</strong>.</div>
+        </div>
+        <div class="arrow">&#10142;</div>
+        <div class="tense-block">
+            <div class="tense-label">Vergangenheit</div>
+            <div class="sentence-content">
+                У меня 
+                <select class="task-select" data-correct="был" onchange="checkSelect(this)">
+                    <option value="">---</option>
+                    <option value="был">был</option>
+                    <option value="была">была</option>
+                    <option value="было">было</option>
+                    <option value="были">были</option>
+                </select> 
+                кот.
+            </div>
+        </div>
+        <div class="arrow">&#10142;</div>
+        <div class="tense-block">
+            <div class="tense-label">Zukunft</div>
+            <div class="sentence-content">
+                У меня 
+                <select class="task-select" data-correct="будет" onchange="checkSelect(this)">
+                    <option value="">---</option>
+                    <option value="будет">будет</option>
+                    <option value="будут">будут</option>
+                </select> 
+                кот.
+            </div>
+        </div>
+    </div>
+
+    <!-- Satz 2: Feminin (Besitz) -->
+    <div class="trans-row">
+        <div class="row-number">2.</div>
+        <div class="tense-block">
+            <div class="tense-label">Gegenwart</div>
+            <div class="sentence-content">У брата есть <strong>машина</strong>.</div>
+        </div>
+        <div class="arrow">&#10142;</div>
+        <div class="tense-block">
+            <div class="tense-label">Vergangenheit</div>
+            <div class="sentence-content">
+                У брата 
+                <select class="task-select" data-correct="была" onchange="checkSelect(this)">
+                    <option value="">---</option>
+                    <option value="был">был</option>
+                    <option value="была">была</option>
+                    <option value="было">было</option>
+                </select> 
+                машина.
+            </div>
+        </div>
+        <div class="arrow">&#10142;</div>
+        <div class="tense-block">
+            <div class="tense-label">Zukunft</div>
+            <div class="sentence-content">
+                У брата 
+                <select class="task-select" data-correct="будет" onchange="checkSelect(this)">
+                    <option value="">---</option>
+                    <option value="будет">будет</option>
+                    <option value="будут">будут</option>
+                </select> 
+                машина.
+            </div>
+        </div>
+    </div>
+
+    <!-- Satz 3: Neutrum (Besitz) -->
+    <div class="trans-row">
+        <div class="row-number">3.</div>
+        <div class="tense-block">
+            <div class="tense-label">Gegenwart</div>
+            <div class="sentence-content">У нас есть <strong>яблоко</strong>.</div>
+        </div>
+        <div class="arrow">&#10142;</div>
+        <div class="tense-block">
+            <div class="tense-label">Vergangenheit</div>
+            <div class="sentence-content">
+                У нас 
+                <select class="task-select" data-correct="было" onchange="checkSelect(this)">
+                    <option value="">---</option>
+                    <option value="был">был</option>
+                    <option value="была">была</option>
+                    <option value="было">было</option>
+                </select> 
+                яблоко.
+            </div>
+        </div>
+        <div class="arrow">&#10142;</div>
+        <div class="tense-block">
+            <div class="tense-label">Zukunft</div>
+            <div class="sentence-content">
+                У нас 
+                <select class="task-select" data-correct="будет" onchange="checkSelect(this)">
+                    <option value="">---</option>
+                    <option value="будет">будет</option>
+                    <option value="будут">будут</option>
+                </select> 
+                яблоко.
+            </div>
+        </div>
+    </div>
+
+    <!-- Satz 4: Plural (Besitz) -->
+    <div class="trans-row">
+        <div class="row-number">4.</div>
+        <div class="tense-block">
+            <div class="tense-label">Gegenwart</div>
+            <div class="sentence-content">У сестры есть <strong>книги</strong>.</div>
+        </div>
+        <div class="arrow">&#10142;</div>
+        <div class="tense-block">
+            <div class="tense-label">Vergangenheit</div>
+            <div class="sentence-content">
+                У сестры 
+                <select class="task-select" data-correct="были" onchange="checkSelect(this)">
+                    <option value="">---</option>
+                    <option value="был">был</option>
+                    <option value="была">была</option>
+                    <option value="были">были</option>
+                </select> 
+                книги.
+            </div>
+        </div>
+        <div class="arrow">&#10142;</div>
+        <div class="tense-block">
+            <div class="tense-label">Zukunft</div>
+            <div class="sentence-content">
+                У сестры 
+                <select class="task-select" data-correct="будут" onchange="checkSelect(this)">
+                    <option value="">---</option>
+                    <option value="будет">будет</option>
+                    <option value="будут">будут</option>
+                </select> 
+                книги.
+            </div>
+        </div>
+    </div>
+
+    <!-- Satz 5: Ort (Person Maskulin) -->
+    <div class="trans-row">
+        <div class="row-number">5.</div>
+        <div class="tense-block">
+            <div class="tense-label">Gegenwart</div>
+            <div class="sentence-content"><strong>Иван</strong> дома.</div>
+        </div>
+        <div class="arrow">&#10142;</div>
+        <div class="tense-block">
+            <div class="tense-label">Vergangenheit</div>
+            <div class="sentence-content">
+                Иван 
+                <select class="task-select" data-correct="был" onchange="checkSelect(this)">
+                    <option value="">---</option>
+                    <option value="был">был</option>
+                    <option value="была">была</option>
+                    <option value="было">было</option>
+                </select> 
+                дома.
+            </div>
+        </div>
+        <div class="arrow">&#10142;</div>
+        <div class="tense-block">
+            <div class="tense-label">Zukunft</div>
+            <div class="sentence-content">
+                Иван 
+                <select class="task-select" data-correct="будет" onchange="checkSelect(this)">
+                    <option value="">---</option>
+                    <option value="будет">будет</option>
+                    <option value="будут">будут</option>
+                </select> 
+                дома.
+            </div>
+        </div>
+    </div>
+
+    <!-- Satz 6: Ort (Person Feminin) -->
+    <div class="trans-row">
+        <div class="row-number">6.</div>
+        <div class="tense-block">
+            <div class="tense-label">Gegenwart</div>
+            <div class="sentence-content"><strong>Анна</strong> в школе.</div>
+        </div>
+        <div class="arrow">&#10142;</div>
+        <div class="tense-block">
+            <div class="tense-label">Vergangenheit</div>
+            <div class="sentence-content">
+                Анна 
+                <select class="task-select" data-correct="была" onchange="checkSelect(this)">
+                    <option value="">---</option>
+                    <option value="был">был</option>
+                    <option value="была">была</option>
+                    <option value="было">было</option>
+                </select> 
+                в школе.
+            </div>
+        </div>
+        <div class="arrow">&#10142;</div>
+        <div class="tense-block">
+            <div class="tense-label">Zukunft</div>
+            <div class="sentence-content">
+                Анна 
+                <select class="task-select" data-correct="будет" onchange="checkSelect(this)">
+                    <option value="">---</option>
+                    <option value="будет">будет</option>
+                    <option value="будут">будут</option>
+                </select> 
+                в школе.
+            </div>
+        </div>
+    </div>
+
+    <!-- Satz 7: Ort (Plural) -->
+    <div class="trans-row">
+        <div class="row-number">7.</div>
+        <div class="tense-block">
+            <div class="tense-label">Gegenwart</div>
+            <div class="sentence-content"><strong>Мы</strong> в парке.</div>
+        </div>
+        <div class="arrow">&#10142;</div>
+        <div class="tense-block">
+            <div class="tense-label">Vergangenheit</div>
+            <div class="sentence-content">
+                Мы 
+                <select class="task-select" data-correct="были" onchange="checkSelect(this)">
+                    <option value="">---</option>
+                    <option value="был">был</option>
+                    <option value="была">была</option>
+                    <option value="были">были</option>
+                </select> 
+                в парке.
+            </div>
+        </div>
+        <div class="arrow">&#10142;</div>
+        <div class="tense-block">
+            <div class="tense-label">Zukunft</div>
+            <div class="sentence-content">
+                Мы 
+                <select class="task-select" data-correct="будем" onchange="checkSelect(this)">
+                    <option value="">---</option>
+                    <option value="буду">буду</option>
+                    <option value="будет">будет</option>
+                    <option value="будем">будем</option>
+                    <option value="будут">будут</option>
+                </select> 
+                в парке.
+            </div>
+        </div>
+    </div>
+
+    <!-- Satz 8: Besitz (Feminin - Hund) -->
+    <div class="trans-row">
+        <div class="row-number">8.</div>
+        <div class="tense-block">
+            <div class="tense-label">Gegenwart</div>
+            <div class="sentence-content">У них есть <strong>собака</strong>.</div>
+        </div>
+        <div class="arrow">&#10142;</div>
+        <div class="tense-block">
+            <div class="tense-label">Vergangenheit</div>
+            <div class="sentence-content">
+                У них 
+                <select class="task-select" data-correct="была" onchange="checkSelect(this)">
+                    <option value="">---</option>
+                    <option value="был">был</option>
+                    <option value="была">была</option>
+                    <option value="было">было</option>
+                </select> 
+                собака.
+            </div>
+        </div>
+        <div class="arrow">&#10142;</div>
+        <div class="tense-block">
+            <div class="tense-label">Zukunft</div>
+            <div class="sentence-content">
+                У них 
+                <select class="task-select" data-correct="будет" onchange="checkSelect(this)">
+                    <option value="">---</option>
+                    <option value="будет">будет</option>
+                    <option value="будут">будут</option>
+                </select> 
+                собака.
+            </div>
+        </div>
+    </div>
+
+    <!-- Satz 9: Besitz (Maskulin - Telefon) -->
+    <div class="trans-row">
+        <div class="row-number">9.</div>
+        <div class="tense-block">
+            <div class="tense-label">Gegenwart</div>
+            <div class="sentence-content">У папы есть <strong>телефон</strong>.</div>
+        </div>
+        <div class="arrow">&#10142;</div>
+        <div class="tense-block">
+            <div class="tense-label">Vergangenheit</div>
+            <div class="sentence-content">
+                У папы 
+                <select class="task-select" data-correct="был" onchange="checkSelect(this)">
+                    <option value="">---</option>
+                    <option value="был">был</option>
+                    <option value="была">была</option>
+                    <option value="было">было</option>
+                </select> 
+                телефон.
+            </div>
+        </div>
+        <div class="arrow">&#10142;</div>
+        <div class="tense-block">
+            <div class="tense-label">Zukunft</div>
+            <div class="sentence-content">
+                У папы 
+                <select class="task-select" data-correct="будет" onchange="checkSelect(this)">
+                    <option value="">---</option>
+                    <option value="будет">будет</option>
+                    <option value="будут">будут</option>
+                </select> 
+                телефон.
+            </div>
+        </div>
+    </div>
+
+    <!-- Satz 10: Ort (Neutrum - Meer) -->
+    <div class="trans-row">
+        <div class="row-number">10.</div>
+        <div class="tense-block">
+            <div class="tense-label">Gegenwart</div>
+            <div class="sentence-content"><strong>Море</strong> тёплое.</div>
+        </div>
+        <div class="arrow">&#10142;</div>
+        <div class="tense-block">
+            <div class="tense-label">Vergangenheit</div>
+            <div class="sentence-content">
+                Море 
+                <select class="task-select" data-correct="было" onchange="checkSelect(this)">
+                    <option value="">---</option>
+                    <option value="был">был</option>
+                    <option value="была">была</option>
+                    <option value="было">было</option>
+                </select> 
+                тёплое.
+            </div>
+        </div>
+        <div class="arrow">&#10142;</div>
+        <div class="tense-block">
+            <div class="tense-label">Zukunft</div>
+            <div class="sentence-content">
+                Море 
+                <select class="task-select" data-correct="будет" onchange="checkSelect(this)">
+                    <option value="">---</option>
+                    <option value="будет">будет</option>
+                    <option value="будут">будут</option>
+                </select> 
+                тёплое.
+            </div>
+        </div>
+    </div>
+
+
+    <!-- Steuerung -->
+    <div class="controls">
+        <button class="ctrl-btn btn-reset" onclick="resetGame()">Alle Zurücksetzen</button>
+        <button class="ctrl-btn btn-solve" onclick="showSolution()">Alle Lösen</button>
+    </div>
+
+</div>
+
+<script>
+    function checkSelect(selectElement) {
+        const correctVal = selectElement.getAttribute('data-correct');
+        const userVal = selectElement.value;
+
+        // Reset classes
+        selectElement.classList.remove('correct', 'wrong');
+
+        // Check logic
+        if (userVal !== "") {
+            if (userVal === correctVal) {
+                selectElement.classList.add('correct');
+            } else {
+                selectElement.classList.add('wrong');
+            }
+        }
+    }
+
+    function resetGame() {
+        const selects = document.querySelectorAll('.task-select');
+        selects.forEach(select => {
+            select.value = "";
+            select.classList.remove('correct', 'wrong');
+        });
+    }
+
+    function showSolution() {
+        const selects = document.querySelectorAll('.task-select');
+        selects.forEach(select => {
+            select.value = select.getAttribute('data-correct');
+            select.classList.remove('wrong');
+            select.classList.add('correct');
+        });
+    }
+</script>
+
+</body>
+</html>
